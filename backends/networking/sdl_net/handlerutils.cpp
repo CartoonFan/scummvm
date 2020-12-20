@@ -28,7 +28,6 @@
 #include "common/file.h"
 #include "common/translation.h"
 #include "common/unzip.h"
-#include "common/encoding.h"
 
 namespace Networking {
 
@@ -165,7 +164,8 @@ bool HandlerUtils::hasPermittedPrefix(const Common::String &path) {
 #else
 	prefix = ConfMan.get("savepath");
 #endif
-	return (normalized.hasPrefix(normalizePath(prefix)));
+	return normalized.hasPrefix(normalizePath(prefix))
+	       || normalizePath(prefix).compareTo(normalized + "/") == 0;
 }
 
 bool HandlerUtils::permittedPath(const Common::String path) {

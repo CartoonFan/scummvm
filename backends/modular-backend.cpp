@@ -24,12 +24,14 @@
 
 #include "backends/audiocd/audiocd.h"
 #include "backends/graphics/graphics.h"
+#include "backends/graphics3d/graphics3d.h"
 #include "backends/mixer/mixer.h"
 #include "backends/mutex/mutex.h"
 #include "gui/EventRecorder.h"
 
 #include "common/timer.h"
 #include "graphics/pixelformat.h"
+#include "graphics/pixelbuffer.h"
 
 ModularGraphicsBackend::ModularGraphicsBackend()
 	:
@@ -67,8 +69,8 @@ int ModularGraphicsBackend::getDefaultGraphicsMode() const {
 	return _graphicsManager->getDefaultGraphicsMode();
 }
 
-bool ModularGraphicsBackend::setGraphicsMode(int mode) {
-	return _graphicsManager->setGraphicsMode(mode);
+bool ModularGraphicsBackend::setGraphicsMode(int mode, uint flags) {
+	return _graphicsManager->setGraphicsMode(mode, flags);
 }
 
 int ModularGraphicsBackend::getGraphicsMode() const {
@@ -107,10 +109,6 @@ int ModularGraphicsBackend::getStretchMode() const {
 	return _graphicsManager->getStretchMode();
 }
 
-void ModularGraphicsBackend::resetGraphicsScale() {
-	_graphicsManager->resetGraphicsScale();
-}
-
 #ifdef USE_RGB_COLOR
 
 Graphics::PixelFormat ModularGraphicsBackend::getScreenFormat() const {
@@ -123,7 +121,7 @@ Common::List<Graphics::PixelFormat> ModularGraphicsBackend::getSupportedFormats(
 
 #endif
 
-void ModularGraphicsBackend::initSize(uint w, uint h, const Graphics::PixelFormat *format ) {
+void ModularGraphicsBackend::initSize(uint w, uint h, const Graphics::PixelFormat *format) {
 	_graphicsManager->initSize(w, h, format);
 }
 
@@ -234,6 +232,10 @@ bool ModularGraphicsBackend::showMouse(bool visible) {
 	return _graphicsManager->showMouse(visible);
 }
 
+bool ModularGraphicsBackend::lockMouse(bool visible) {
+	return _graphicsManager->lockMouse(visible);
+}
+
 void ModularGraphicsBackend::warpMouse(int x, int y) {
 	_eventManager->purgeMouseEvents();
 	_graphicsManager->warpMouse(x, y);
@@ -253,6 +255,10 @@ void ModularGraphicsBackend::displayMessageOnOSD(const Common::U32String &msg) {
 
 void ModularGraphicsBackend::displayActivityIconOnOSD(const Graphics::Surface *icon) {
 	_graphicsManager->displayActivityIconOnOSD(icon);
+}
+
+void ModularGraphicsBackend::saveScreenshot() {
+	_graphicsManager->saveScreenshot();
 }
 
 

@@ -142,6 +142,8 @@ MODULE_OBJS += \
 	events/sdl/sdl-events.o \
 	graphics/sdl/sdl-graphics.o \
 	graphics/surfacesdl/surfacesdl-graphics.o \
+	graphics3d/sdl/sdl-graphics3d.o \
+	graphics3d/openglsdl/openglsdl-graphics3d.o \
 	mixer/sdl/sdl-mixer.o \
 	mutex/sdl/sdl-mutex.o \
 	plugins/sdl/sdl-provider.o \
@@ -227,6 +229,11 @@ MODULE_OBJS += \
 	mutex/pthread/pthread-mutex.o
 endif
 
+ifeq ($(BACKEND),android3d)
+MODULE_OBJS += \
+	mutex/pthread/pthread-mutex.o
+endif
+
 ifeq ($(BACKEND),androidsdl)
 MODULE_OBJS += \
 	events/androidsdl/androidsdl-events.o
@@ -234,15 +241,17 @@ endif
 
 ifdef AMIGAOS
 MODULE_OBJS += \
-	fs/amigaos4/amigaos4-fs.o \
-	fs/amigaos4/amigaos4-fs-factory.o \
+	dialogs/amigaos/amigaos-dialogs.o \
+	fs/amigaos/amigaos-fs.o \
+	fs/amigaos/amigaos-fs-factory.o \
 	midi/camd.o
 endif
 
 ifdef MORPHOS
 MODULE_OBJS += \
 	fs/morphos/morphos-fs.o \
-	fs/morphos/morphos-fs-factory.o
+	fs/morphos/morphos-fs-factory.o \
+	dialogs/morphos/morphos-dialogs.o
 endif
 
 ifdef RISCOS
@@ -290,6 +299,11 @@ MODULE_OBJS += \
 	events/gph/gph-events.o \
 	graphics/gph/gph-graphics.o \
 	graphics/downscalesdl/downscalesdl-graphics.o
+endif
+
+ifdef IPHONE
+MODULE_OBJS += \
+	mutex/pthread/pthread-mutex.o
 endif
 
 ifeq ($(BACKEND),maemo)

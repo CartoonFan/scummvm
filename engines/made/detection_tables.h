@@ -24,17 +24,9 @@
 #define MADE_DETECTION_TABLES_H
 
 #include "engines/advancedDetector.h"
+#include "common/translation.h"
 
 namespace Made {
-
-struct MadeGameDescription {
-	ADGameDescription desc;
-
-	int gameID;
-	int gameType;
-	uint32 features;
-	uint16 version;
-};
 
 static const MadeGameDescription gameDescriptions[] = {
 	{
@@ -95,11 +87,28 @@ static const MadeGameDescription gameDescriptions[] = {
 	},
 
 	{
-		// Return to Zork - English CD version 1.1 12/7/93
+		// Return to Zork - English OEM CD version 1.1 12/7/93
 		{
 			"rtz",
 			"V1.1, 12/7/93, CD",
 			AD_ENTRY1s("rtzcd.red", "c4e2430e6b6c6ff1562a80fb4a9df24c", 276177),
+			Common::EN_ANY,
+			Common::kPlatformDOS,
+			ADGF_CD,
+			GUIO0()
+		},
+		GID_RTZ,
+		0,
+		GF_CD_COMPRESSED,
+		3,
+	},
+
+	{
+		// Return to Zork - English Retail CD version 1.1 12/7/93
+		{
+			"rtz",
+			"V1.1, 12/7/93, CD",
+			AD_ENTRY1s("rtzcd.red", "c4e2430e6b6c6ff1562a80fb4a9df24c", 276466),
 			Common::EN_ANY,
 			Common::kPlatformDOS,
 			ADGF_CD,
@@ -134,7 +143,11 @@ static const MadeGameDescription gameDescriptions[] = {
 		{
 			"rtz",
 			"V1.2, 9/29/94, CD",
-			AD_ENTRY1s("rtzcd.red", "946997d8b0aa6cb4e848bad02a1fc3d2", 276584),
+			{
+				{ "rtzcd.red", 0, "946997d8b0aa6cb4e848bad02a1fc3d2", 276584 },
+				{ "rtzcd.prj", 0, "974d74410c3c29d50e857863e8bf40e2", 43016792 },
+				AD_LISTEND
+			},
 			Common::EN_ANY,
 			Common::kPlatformDOS,
 			ADGF_CD,
@@ -255,6 +268,29 @@ static const MadeGameDescription gameDescriptions[] = {
 	},
 
 	{
+		// Return to Zork - Korean CD version 1.2 9/29/94
+		// Dub only. No text was translated, even in menus, so there are no font issues.
+		// submitted by trembyle
+		{
+			"rtz",
+			"V1.2, 9/29/94, CD",
+			{
+				{ "rtzcd.red", 0, "946997d8b0aa6cb4e848bad02a1fc3d2", 276584 },
+				{ "rtzcd.prj", 0, "3c8644f7ce77b74968637c035c3532d8", 48083511 },
+				AD_LISTEND
+			},
+			Common::KO_KOR,
+			Common::kPlatformDOS,
+			ADGF_CD,
+			GUIO0()
+		},
+		GID_RTZ,
+		0,
+		GF_CD_COMPRESSED,
+		3,
+	},
+
+	{
 		// Return to Zork - English floppy version
 		{
 			"rtz",
@@ -342,24 +378,24 @@ static const MadeGameDescription gameDescriptions[] = {
 		3,
 	},
 
-// The Manhole: Masterpiece Edition is not a MADE engine and should not be
-// added to the detection list. It is a HyperCard-like engine
-//	{
-//		// The Manhole: Masterpiece Edition (GOG/CD)
-//		{
-//			"manhole",
-//			"",
-//			AD_ENTRY1("manhole.dat", "e8cec9bf21e4c50a7ebc193a4e0b48f5"),
-//			Common::EN_ANY,
-//			Common::kPlatformDOS,
-//			ADGF_UNSTABLE,
-//			GUIO1(GUIO_NOSPEECH)
-//		},
-//		GID_MANHOLE,
-//		0,
-//		GF_CD,
-//		2,
-//	},
+	// The Manhole: Masterpiece Edition is not a MADE engine and cannot be
+	// supported by MADE. It is a HyperCard-like engine
+	{
+		// The Manhole: Masterpiece Edition (GOG/CD)
+		{
+			"manhole",
+			_s("The game is using unsupported engine"),
+			AD_ENTRY1("manhole.dat", "e8cec9bf21e4c50a7ebc193a4e0b48f5"),
+			Common::EN_ANY,
+			Common::kPlatformDOS,
+			ADGF_UNSUPPORTED,
+			GUIO1(GUIO_NOSPEECH)
+		},
+		GID_MANHOLE,
+		0,
+		GF_CD,
+		2,
+	},
 
 	{
 		// The Manhole: New and Enhanced

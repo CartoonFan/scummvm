@@ -59,6 +59,7 @@ class CommandSender;
 class GuiObject;
 class RadiobuttonGroup;
 class RadiobuttonWidget;
+class OptionsContainerWidget;
 
 class OptionsDialog : public Dialog {
 public:
@@ -157,6 +158,11 @@ private:
 	CheckboxWidget *_fullscreenCheckbox;
 	CheckboxWidget *_filteringCheckbox;
 	CheckboxWidget *_aspectCheckbox;
+	CheckboxWidget *_vsyncCheckbox;
+	StaticTextWidget *_rendererTypePopUpDesc;
+	PopUpWidget *_rendererTypePopUp;
+	StaticTextWidget *_antiAliasPopUpDesc;
+	PopUpWidget *_antiAliasPopUp;
 	StaticTextWidget *_renderModePopUpDesc;
 	PopUpWidget *_renderModePopUp;
 
@@ -241,6 +247,11 @@ protected:
 	//
 	Common::String _guioptions;
 	Common::String _guioptionsString;
+
+	//
+	// Backend controls
+	//
+	OptionsContainerWidget *_backendOptions;
 };
 
 
@@ -296,6 +307,8 @@ protected:
 	PopUpWidget *_guiLanguagePopUp;
 	CheckboxWidget *_guiLanguageUseGameLanguageCheckbox;
 	CheckboxWidget *_useSystemDialogsCheckbox;
+	CheckboxWidget *_guiReturnToLauncherAtExit;
+	CheckboxWidget *_guiConfirmExit;
 
 
 #ifdef USE_UPDATES

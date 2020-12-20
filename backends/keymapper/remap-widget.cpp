@@ -218,7 +218,7 @@ void RemapWidget::startRemapping(uint actionIndex) {
 	_remapAction = _actions[actionIndex].action;
 
 	uint32 remapTimeoutDelay = kRemapMinTimeoutDelay;
-	if (ConfMan.hasKey("remap_timeout_delay_ms") && (ConfMan.getInt("remap_timeout_delay_ms") > kRemapMinTimeoutDelay)) {
+	if (ConfMan.hasKey("remap_timeout_delay_ms") && ((uint32)ConfMan.getInt("remap_timeout_delay_ms") > kRemapMinTimeoutDelay)) {
 		remapTimeoutDelay = (uint32)ConfMan.getInt("remap_timeout_delay_ms");
 	}
 	_remapTimeout = g_system->getMillis() + remapTimeoutDelay;
@@ -283,10 +283,10 @@ void RemapWidget::refreshKeymap() {
 		ActionRow &row = _actions[i];
 
 		if (!row.actionText) {
-			row.actionText = new GUI::StaticTextWidget(widgetsBoss(), 0, 0, 0, 0, U32String(""), Graphics::kTextAlignStart, U32String(""), GUI::ThemeEngine::kFontStyleNormal);
+			row.actionText = new GUI::StaticTextWidget(widgetsBoss(), 0, 0, 0, 0, U32String(), Graphics::kTextAlignStart, U32String(), GUI::ThemeEngine::kFontStyleNormal);
 			row.actionText->setLabel(row.action->description);
 
-			row.keyButton = new GUI::DropdownButtonWidget(widgetsBoss(), 0, 0, 0, 0, U32String(""), U32String(""), kRemapCmd + i);
+			row.keyButton = new GUI::DropdownButtonWidget(widgetsBoss(), 0, 0, 0, 0, U32String(), U32String(), kRemapCmd + i);
 			row.keyButton->appendEntry(_("Reset to defaults"), kResetActionCmd + i);
 			row.keyButton->appendEntry(_("Clear mapping"), kClearCmd + i);
 		}
@@ -313,7 +313,7 @@ void RemapWidget::refreshKeymap() {
 		KeymapTitleRow &keymapTitle = _keymapSeparators[row.keymap];
 		if (!keymapTitle.descriptionText) {
 			keymapTitle.descriptionText = new GUI::StaticTextWidget(widgetsBoss(), 0, 0, 0, 0, row.keymap->getDescription(), Graphics::kTextAlignStart);
-			keymapTitle.resetButton = new GUI::ButtonWidget(widgetsBoss(), 0, 0, 0, 0, U32String(""), U32String(""), kResetKeymapCmd + i);
+			keymapTitle.resetButton = new GUI::ButtonWidget(widgetsBoss(), 0, 0, 0, 0, U32String(), U32String(), kResetKeymapCmd + i);
 
 			// I18N: Button to reset keymap mappings to defaults
 			keymapTitle.resetButton->setLabel(_("Reset"));

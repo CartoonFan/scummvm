@@ -1,7 +1,7 @@
 MODULE := engines/ultima
 
 MODULE_OBJS := \
-	detection.o \
+	metaengine.o \
 	shared/actions/action.o \
 	shared/actions/huh.o \
 	shared/actions/pass.o \
@@ -560,6 +560,7 @@ MODULE_OBJS := \
 	ultima8/world/actors/animation.o \
 	ultima8/world/actors/animation_tracker.o \
 	ultima8/world/actors/anim_action.o \
+	ultima8/world/actors/attack_process.o \
 	ultima8/world/actors/avatar_death_process.o \
 	ultima8/world/actors/avatar_gravity_process.o \
 	ultima8/world/actors/avatar_mover_process.o \
@@ -574,6 +575,7 @@ MODULE_OBJS := \
 	ultima8/world/actors/loiter_process.o \
 	ultima8/world/actors/main_actor.o \
 	ultima8/world/actors/npc_dat.o \
+	ultima8/world/actors/pace_process.o \
 	ultima8/world/actors/pathfinder.o \
 	ultima8/world/actors/pathfinder_process.o \
 	ultima8/world/actors/quick_avatar_mover_process.o \
@@ -590,3 +592,6 @@ endif
 
 # Include common rules
 include $(srcdir)/rules.mk
+
+# Detection objects
+DETECT_OBJS += $(MODULE)/detection.o

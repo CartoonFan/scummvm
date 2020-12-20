@@ -51,6 +51,7 @@ OSystem_MacOSX::~OSystem_MacOSX() {
 
 void OSystem_MacOSX::init() {
 	// Use an iconless window on OS X, as we use a nicer external icon there.
+	initSDL();
 	_window = new SdlIconlessWindow();
 
 #if defined(USE_TASKBAR)
@@ -103,7 +104,8 @@ void OSystem_MacOSX::addSysArchivesToSearchSet(Common::SearchSet &s, int priorit
 		if (CFURLGetFileSystemRepresentation(fileUrl, true, buf, sizeof(buf))) {
 			// Success: Add it to the search path
 			Common::String bundlePath((const char *)buf);
-			s.add("__OSX_BUNDLE__", new Common::FSDirectory(bundlePath), priority);
+			// Search with a depth of 2 so the shaders are found
+			s.add("__OSX_BUNDLE__", new Common::FSDirectory(bundlePath, 2), priority);
 		}
 		CFRelease(fileUrl);
 	}

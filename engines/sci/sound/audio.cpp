@@ -20,7 +20,7 @@
  *
  */
 
-#include "sci/resource.h"
+#include "sci/resource/resource.h"
 #include "sci/engine/kernel.h"
 #include "sci/engine/seg_manager.h"
 #include "sci/sound/audio.h"
@@ -71,19 +71,49 @@ void AudioPlayer::handleFanmadeSciAudio(reg_t sciAudioObject, SegManager *segMan
 	// TODO: This is a bare bones implementation. Only the play/playx and stop commands
 	// are handled for now - the other commands haven't been observed in any fanmade game
 	// yet. All the volume related and fading functionality is currently missing.
-
 	Kernel *kernel = g_sci->getKernel();
 
+	// get the sciAudio command from the "command" selector.
+	// this property is a string in 1.0 and an integer in 1.1.
+	enum FanmadeSciAudioCommand {
+		kFanmadeSciAudioCommandNone = -1,
+		kFanmadeSciAudioCommandPlayX,
+		kFanmadeSciAudioCommandPlay,
+		kFanmadeSciAudioCommandStop
+	};
+	FanmadeSciAudioCommand sciAudioCommand = kFanmadeSciAudioCommandNone;
 	reg_t commandReg = readSelector(segMan, sciAudioObject, kernel->findSelector("command"));
-	Common::String command = segMan->getString(commandReg);
+	Common::String commandString;
+	if (commandReg.isNumber()) {
+		// sciAudio 1.1
+		sciAudioCommand = (FanmadeSciAudioCommand)commandReg.toUint16();
+	} else {
+		// sciAudio 1.0
+		commandString = segMan->getString(commandReg);
+		if (commandString == "playx") {
+			sciAudioCommand = kFanmadeSciAudioCommandPlayX;
+		} else if (commandString == "play") {
+			sciAudioCommand = kFanmadeSciAudioCommandPlay;
+		} else if (commandString == "stop") {
+			sciAudioCommand = kFanmadeSciAudioCommandStop;
+		}
+	}
 
-	if (command == "play" || command == "playx") {
+	if (sciAudioCommand == kFanmadeSciAudioCommandPlayX ||
+		sciAudioCommand == kFanmadeSciAudioCommandPlay) {
 		reg_t fileNameReg = readSelector(segMan, sciAudioObject, kernel->findSelector("fileName"));
 		Common::String fileName = segMan->getString(fileNameReg);
 
 		reg_t loopCountReg = readSelector(segMan, sciAudioObject, kernel->findSelector("loopCount"));
-		Common::String loopCountStr = segMan->getString(loopCountReg);
-		int16 loopCount = atoi(loopCountStr.c_str());
+		int16 loopCount;
+		if (loopCountReg.isNumber()) {
+			// sciAudio 1.1
+			loopCount = loopCountReg.toSint16();
+		} else {
+			// sciAudio 1.0
+			Common::String loopCountStr = segMan->getString(loopCountReg);
+			loopCount = atoi(loopCountStr.c_str());
+		}
 
 		// Adjust loopCount for ScummVM's LoopingAudioStream semantics
 		if (loopCount == -1) {
@@ -148,10 +178,14 @@ void AudioPlayer::handleFanmadeSciAudio(reg_t sciAudioObject, SegManager *segMan
 		// We only support one audio handle
 		_mixer->playStream(soundType, &_audioHandle,
 							Audio::makeLoopingAudioStream((Audio::RewindableAudioStream *)audioStream, loopCount));
-	} else if (command == "stop") {
+	} else if (sciAudioCommand == kFanmadeSciAudioCommandStop) {
 		_mixer->stopHandle(_audioHandle);
 	} else {
-		warning("Unhandled sciAudio command: %s", command.c_str());
+		if (commandReg.isNumber()) {
+			warning("Unhandled sciAudio command: %u", commandReg.getOffset());
+		} else {
+			warning("Unhandled sciAudio command: %s", commandString.c_str());
+		}
 	}
 }
 
@@ -481,8 +515,7 @@ int AudioPlayer::audioCdPlay(int track, int start, int duration) {
 
 		// Subtract one from track. KQ6 starts at track 1, while ScummVM
 		// ignores the data track and considers track 2 to be track 1.
-		g_system->getAudioCDManager()->play(track - 1, 1, start, duration);
-		return 1;
+		return g_system->getAudioCDManager()->play(track - 1, 1, start, duration) ? 1 : 0;
 	} else {
 		// Jones in the Fast Lane CD Audio format
 		uint32 length = 0;

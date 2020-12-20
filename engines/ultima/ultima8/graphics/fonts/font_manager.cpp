@@ -42,7 +42,7 @@ namespace Ultima8 {
 
 FontManager *FontManager::_fontManager = nullptr;
 
-FontManager::FontManager(bool ttf_antialiasing_) : _ttfAntialiasing(ttf_antialiasing_) {
+FontManager::FontManager(bool ttf_antialiasing) : _ttfAntialiasing(ttf_antialiasing) {
 	debugN(MM_INFO, "Creating Font Manager...\n");
 
 	_fontManager = this;
@@ -109,6 +109,7 @@ Graphics::Font *FontManager::getTTF_Font(const Std::string &filename, int points
 		return nullptr;
 	}
 
+#ifdef USE_FREETYPE2
 	// open font using ScummVM TTF API
 	// Note: The RWops and ReadStream will be deleted by the TTF_Font
 	Graphics::Font *font = Graphics::loadTTFFont(*fontids, pointsize);
@@ -125,6 +126,9 @@ Graphics::Font *FontManager::getTTF_Font(const Std::string &filename, int points
 #endif
 
 	return font;
+#else // !USE_FREETYPE2
+	return nullptr;
+#endif
 }
 
 void FontManager::setOverride(unsigned int fontnum, Font *newFont) {

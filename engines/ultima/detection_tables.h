@@ -49,11 +49,8 @@ static const UltimaGameDescription GAME_DESCRIPTIONS[] = {
 		{
 			"ultima1",
 			0,
-			{
-				{"egctown.bin", 0, "4f7de68f6689cf9617aa1ea03240137e", 4896},
-				{"map.bin", 0, "f99633a0110ccf90837ab161be56cf1c", 13104},
-				AD_LISTEND
-			},
+			AD_ENTRY2s("egctown.bin",	"4f7de68f6689cf9617aa1ea03240137e", 4896,
+					   "map.bin",		"f99633a0110ccf90837ab161be56cf1c", 13104),
 			Common::JA_JPN,
 			Common::kPlatformPC98,
 			ADGF_UNSTABLE,
@@ -183,6 +180,77 @@ static const UltimaGameDescription GAME_DESCRIPTIONS[] = {
 			GUIO0()
 		},
 		GAME_ULTIMA6,
+		0
+	},
+
+	// Ultima VI - Nitpickers Delight older version
+	{
+		{
+			"ultima6",
+			0,
+			AD_ENTRY1s("converse.a", "5c15ba2a75fb921b715a1a0bf0152bac", 165874),
+			Common::EN_ANY,
+			Common::kPlatformDOS,
+			ADGF_NO_FLAGS,
+			GUIO0()
+		},
+		GAME_ULTIMA6,
+		0
+	},
+	{
+		{
+			"ultima6_enh",
+			0,
+			AD_ENTRY1s("converse.a","5c15ba2a75fb921b715a1a0bf0152bac", 165874),
+			Common::EN_ANY,
+			Common::kPlatformDOS,
+			ADGF_NO_FLAGS,
+			GUIO0()
+		},
+		GAME_ULTIMA6,
+		GF_VGA_ENHANCED
+	},
+
+	// Ultima VI - Nitpickers Delight newer version
+	{
+		{
+			"ultima6",
+			0,
+			AD_ENTRY1s("converse.a", "9f77c84a03efc77df2d53544d1275da8", 167604),
+			Common::EN_ANY,
+			Common::kPlatformDOS,
+			ADGF_NO_FLAGS,
+			GUIO0()
+		},
+		GAME_ULTIMA6,
+		0
+	},
+	{
+		{
+			"ultima6_enh",
+			0,
+			AD_ENTRY1s("converse.a", "9f77c84a03efc77df2d53544d1275da8", 167604),
+			Common::EN_ANY,
+			Common::kPlatformDOS,
+			ADGF_NO_FLAGS,
+			GUIO0()
+		},
+		GAME_ULTIMA6,
+		GF_VGA_ENHANCED
+	},
+
+	// Ultima VIII - CD (provided by ddeluca1com, bug #11944)
+	{
+		{
+			"ultima8",
+			"",
+			AD_ENTRY1s("eusecode.flx", "5494165cbf4b07be04a465e28350e086", 1209018),
+			Common::EN_ANY,
+			Common::kPlatformDOS,
+			ADGF_NO_FLAGS,
+			GUIO1(GUIO_NOMIDI)
+		},
+		GAME_ULTIMA8,
 		0
 	},
 

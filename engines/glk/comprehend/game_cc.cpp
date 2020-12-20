@@ -29,7 +29,7 @@ namespace Comprehend {
 
 static const GameStrings CC1_STRINGS = {0x9};
 
-CrimsonCrownGame::CrimsonCrownGame() : ComprehendGame(),
+CrimsonCrownGame::CrimsonCrownGame() : ComprehendGameV1(),
 		_diskNum(1), _newDiskNum(1) {
 	setupDisk(1);
 }
@@ -80,8 +80,8 @@ void CrimsonCrownGame::synchronizeSave(Common::Serializer &s) {
 	ComprehendGame::synchronizeSave(s);
 }
 
-void CrimsonCrownGame::handleSpecialOpcode(uint8 operand) {
-	switch (operand) {
+void CrimsonCrownGame::handleSpecialOpcode() {
+	switch (_specialOpcode) {
 	case 1:
 		// Crystyal ball cutscene
 		if (_diskNum == 1) {
@@ -165,6 +165,8 @@ void CrimsonCrownGame::beforeTurn() {
 		loadGame();
 		move_to(_currentRoom);
 	}
+
+	ComprehendGameV1::beforeTurn();
 }
 
 bool CrimsonCrownGame::handle_restart() {

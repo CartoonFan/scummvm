@@ -22,6 +22,10 @@ install:
 	$(INSTALL) -c -m 644 "$(srcdir)/dists/scummvm.desktop" "$(DESTDIR)$(datarootdir)/applications/scummvm.desktop"
 	$(INSTALL) -d "$(DESTDIR)$(datarootdir)/metainfo"
 	$(INSTALL) -c -m 644 "$(srcdir)/dists/scummvm.appdata.xml" "$(DESTDIR)$(datarootdir)/metainfo/scummvm.appdata.xml"
+ifneq ($(DIST_FILES_SHADERS),)
+	$(INSTALL) -d "$(DESTDIR)$(datadir)/shaders"
+	$(INSTALL) -c -m 644 $(DIST_FILES_SHADERS) "$(DESTDIR)$(datadir)/shaders"
+endif
 ifdef DYNAMIC_MODULES
 	$(INSTALL) -d "$(DESTDIR)$(libdir)/scummvm/"
 	$(INSTALL) -c -m 644 $(PLUGINS) "$(DESTDIR)$(libdir)/scummvm/"
@@ -44,6 +48,10 @@ install-strip:
 	$(INSTALL) -c -m 644 "$(srcdir)/dists/scummvm.desktop" "$(DESTDIR)$(datarootdir)/applications/scummvm.desktop"
 	$(INSTALL) -d "$(DESTDIR)$(datarootdir)/metainfo"
 	$(INSTALL) -c -m 644 "$(srcdir)/dists/scummvm.appdata.xml" "$(DESTDIR)$(datarootdir)/metainfo/scummvm.appdata.xml"
+ifneq ($(DIST_FILES_SHADERS),)
+	$(INSTALL) -d "$(DESTDIR)$(datadir)/shaders"
+	$(INSTALL) -c -m 644 $(DIST_FILES_SHADERS) "$(DESTDIR)$(datadir)/shaders"
+endif
 ifdef DYNAMIC_MODULES
 	$(INSTALL) -d "$(DESTDIR)$(libdir)/scummvm/"
 	$(INSTALL) -c -s -m 644 $(PLUGINS) "$(DESTDIR)$(libdir)/scummvm/"
@@ -60,6 +68,28 @@ uninstall:
 	rm -f "$(DESTDIR)$(datarootdir)/metainfo/scummvm.appdata.xml"
 ifdef DYNAMIC_MODULES
 	rm -rf "$(DESTDIR)$(libdir)/scummvm/"
+endif
+
+# Special generic target for simple archive distribution
+
+dist-generic: $(EXECUTABLE)
+	mkdir -p ./dist-generic/scummvm/data
+	mkdir -p ./dist-generic/scummvm/doc
+	cp $(EXECUTABLE) ./dist-generic/scummvm
+	cp $(DIST_FILES_DOCS) ./dist-generic/scummvm/doc
+	cp $(DIST_FILES_THEMES) ./dist-generic/scummvm/data
+ifdef DIST_FILES_ENGINEDATA
+	cp $(DIST_FILES_ENGINEDATA) ./dist-generic/scummvm/data
+endif
+ifdef DIST_FILES_NETWORKING
+	cp $(DIST_FILES_NETWORKING) ./dist-generic/scummvm/data
+endif
+ifdef DIST_FILES_VKEYBD
+	cp $(DIST_FILES_VKEYBD) ./dist-generic/scummvm/data
+endif
+ifdef DIST_FILES_SHADERS
+	mkdir -p ./dist-generic/scummvm/data/shaders
+	cp $(DIST_FILES_SHADERS) ./dist-generic/scummvm/data/shaders
 endif
 
 # Special target to create a application wrapper for Mac OS X
@@ -127,6 +157,10 @@ endif
 ifdef DIST_FILES_VKEYBD
 	cp $(DIST_FILES_VKEYBD) $(bundle_name)/Contents/Resources/
 endif
+ifneq ($(DIST_FILES_SHADERS),)
+	mkdir -p $(bundle_name)/Contents/Resources/shaders
+	cp $(DIST_FILES_SHADERS) $(bundle_name)/Contents/Resources/shaders/
+endif
 	$(srcdir)/devtools/credits.pl --rtf > $(bundle_name)/Contents/Resources/AUTHORS.rtf
 	rm $(bundle_name)/Contents/Resources/AUTHORS
 	@sed -i'' -e "s/AUTHORS/AUTHORS.rtf/g" $(bundle_name)/Contents/Resources/README.md
@@ -138,6 +172,9 @@ endif
 	cp $(bundle_name)/Contents/Resources/COPYING.OFL $(bundle_name)/Contents/Resources/COPYING-OFL
 	cp $(bundle_name)/Contents/Resources/COPYING.BSD $(bundle_name)/Contents/Resources/COPYING-BSD
 	chmod 644 $(bundle_name)/Contents/Resources/*
+ifneq ($(DIST_FILES_SHADERS),)
+	chmod 755 $(bundle_name)/Contents/Resources/shaders
+endif
 	cp scummvm-static $(bundle_name)/Contents/MacOS/scummvm
 	chmod 755 $(bundle_name)/Contents/MacOS/scummvm
 	$(STRIP) $(bundle_name)/Contents/MacOS/scummvm
@@ -307,11 +344,10 @@ endif
 	cp $(srcdir)/dists/ios7/Images.xcassets/LaunchImage.launchimage/ScummVM-splash-2208x1242.png $(bundle_name)/LaunchImage-800-Landscape-736h@3x.png
 	cp $(srcdir)/dists/ios7/Images.xcassets/LaunchImage.launchimage/ScummVM-splash-750x1334.png $(bundle_name)/LaunchImage-800-667h@2x.png
 
-# Location of static libs for the iPhone
-ifneq ($(BACKEND), iphone)
-ifneq ($(BACKEND), ios7)
-# Static libaries, used for the scummvm-static and iphone targets
+
+ifndef WITHOUT_SDL
 OSX_STATIC_LIBS := `$(SDLCONFIG) --prefix=$(STATICLIBPATH) --static-libs`
+
 ifdef USE_SDL_NET
 ifdef USE_SDL2
 OSX_STATIC_LIBS += $(STATICLIBPATH)/lib/libSDL2_net.a
@@ -319,13 +355,27 @@ else
 OSX_STATIC_LIBS += $(STATICLIBPATH)/lib/libSDL_net.a
 endif
 endif
+
 # With sdl2-config we don't always get the OpenGL framework
 OSX_STATIC_LIBS += -framework OpenGL
+
+else # WITHOUT_SDL
+
+# Special SDL_Net library without SDL (iPhone)
+ifdef USE_SDL_NET
+ifeq ($(SDL_NET_MAJOR),1)
+OSX_STATIC_LIBS += $(STATICLIBPATH)/lib/libSDL_net.a
+else
+ifeq ($(SDL_NET_MAJOR),2)
+OSX_STATIC_LIBS += $(STATICLIBPATH)/lib/libSDL2_net.a
 endif
 endif
+endif # USE_SDL_NET
+
+endif # WITHOUT_SDL
 
 ifdef USE_LIBCURL
-OSX_STATIC_LIBS += -lcurl
+OSX_STATIC_LIBS += -lcurl -framework Security
 endif
 
 ifdef USE_FREETYPE2
@@ -334,10 +384,6 @@ endif
 
 ifdef USE_FRIBIDI
 OSX_STATIC_LIBS += $(STATICLIBPATH)/lib/libfribidi.a
-endif
-
-ifdef USE_ICONV
-OSX_STATIC_LIBS += -liconv
 endif
 
 ifdef USE_VORBIS
@@ -359,11 +405,7 @@ OSX_STATIC_LIBS += $(STATICLIBPATH)/lib/libogg.a
 endif
 
 ifdef USE_FLUIDSYNTH
-# If iconv was not yet added, add it now as we need it for libfluidsynth
-ifndef USE_ICONV
-OSX_STATIC_LIBS += -liconv
-endif
-OSX_STATIC_LIBS += \
+OSX_STATIC_LIBS += -liconv \
                 -framework CoreMIDI -framework CoreAudio\
                 $(STATICLIBPATH)/lib/libfluidsynth.a \
                 $(STATICLIBPATH)/lib/libglib-2.0.a \
@@ -420,19 +462,22 @@ endif
 OSX_STATIC_LIBS += -framework Sparkle -Wl,-rpath,@loader_path/../Frameworks
 endif
 endif
+ifdef USE_GLEW
+OSX_STATIC_LIBS += $(STATICLIBPATH)/lib/libGLEW.a
+endif
 
 # Special target to create a static linked binary for Mac OS X.
 # We use -force_cpusubtype_ALL to ensure the binary runs on every
 # PowerPC machine.
-scummvm-static: $(OBJS)
-	$(CXX) $(LDFLAGS) -force_cpusubtype_ALL -o scummvm-static $(OBJS) \
+scummvm-static: $(DETECT_OBJS) $(OBJS)
+	$(CXX) $(LDFLAGS) -force_cpusubtype_ALL -o scummvm-static $(DETECT_OBJS) $(OBJS) \
 		-framework CoreMIDI \
 		$(OSX_STATIC_LIBS) \
 		$(OSX_ZLIB)
 
 # Special target to create a static linked binary for the iPhone (legacy, and iOS 7+)
-iphone: $(OBJS)
-	$(CXX) $(LDFLAGS) -o scummvm $(OBJS) \
+iphone: $(DETECT_OBJS) $(OBJS)
+	$(CXX) $(LDFLAGS) -o scummvm $(DETECT_OBJS) $(OBJS) \
 		$(OSX_STATIC_LIBS) \
 		-framework UIKit -framework CoreGraphics -framework OpenGLES \
 		-framework CoreFoundation -framework QuartzCore -framework Foundation \
@@ -448,6 +493,10 @@ osxsnap: bundle
 	mv ./ScummVM-snapshot/COPYING.FREEFONT ./ScummVM-snapshot/License\ \(FREEFONT\)
 	mv ./ScummVM-snapshot/COPYING.OFL ./ScummVM-snapshot/License\ \(OFL\)
 	mv ./ScummVM-snapshot/COPYING.BSD ./ScummVM-snapshot/License\ \(BSD\)
+	mv ./ScummVM-snapshot/COPYING.ISC ./ScummVM-snapshot/License\ \(ISC\)
+	mv ./ScummVM-snapshot/COPYING.LUA ./ScummVM-snapshot/License\ \(Lua\)
+	mv ./ScummVM-snapshot/COPYING.MIT ./ScummVM-snapshot/License\ \(MIT\)
+	mv ./ScummVM-snapshot/COPYING.TINYGL ./ScummVM-snapshot/License\ \(TinyGL\)
 	$(XCODETOOLSPATH)/SetFile -t ttro -c ttxt ./ScummVM-snapshot/*
 	mkdir ScummVM-snapshot/doc
 	cp $(srcdir)/doc/QuickStart ./ScummVM-snapshot/doc/QuickStart

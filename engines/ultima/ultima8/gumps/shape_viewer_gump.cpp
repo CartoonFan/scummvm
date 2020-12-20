@@ -95,9 +95,9 @@ void ShapeViewerGump::PaintThis(RenderSurface *surf, int32 lerp_factor, bool /*s
 	int32 posx = (_dims.width() - _shapeW) / 2 + _shapeX;
 	int32 posy = (_dims.height() - _shapeH) / 2 + _shapeY - 25;
 
-	Shape *shape_ = _flex->getShape(_curShape);
-	if (shape_ && _curFrame < shape_->frameCount())
-		surf->Paint(shape_, _curFrame, posx, posy);
+	Shape *shape = _flex->getShape(_curShape);
+	if (shape && _curFrame < shape->frameCount())
+		surf->Paint(shape, _curFrame, posx, posy);
 	
 	RenderedText *rendtext;
 	Font *font = FontManager::get_instance()->getGameFont(_fontNo, true);
@@ -110,10 +110,10 @@ void ShapeViewerGump::PaintThis(RenderSurface *surf, int32 lerp_factor, bool /*s
 		// Basic shape/frame information
 		char buf1[50];
 		char buf2[200];
-		if (!shape_) {
+		if (!shape) {
 			sprintf(buf1, "NULL");
 		} else {
-			sprintf(buf1, "Frame %d of %d", _curFrame+1, shape_->frameCount());
+			sprintf(buf1, "Frame %d of %d", _curFrame+1, shape->frameCount());
 		}
 		sprintf(buf2, "%s:  Shape %d, %s", _flexes[_curFlex].first.c_str(),
 				_curShape, buf1);
@@ -133,17 +133,17 @@ void ShapeViewerGump::PaintThis(RenderSurface *surf, int32 lerp_factor, bool /*s
 		
 		int32 relx = mx - (posx - _shapeX);
 		int32 rely = my - (posy - _shapeY);
-		if (shape_ && relx >= 0 && rely >= 0 && relx < _shapeW && rely < _shapeH) {
+		if (shape && relx >= 0 && rely >= 0 && relx < _shapeW && rely < _shapeH) {
 			// get color
 			relx -= _shapeX;
 			rely -= _shapeY;
-			const ShapeFrame *frame = shape_->getFrame(_curFrame);
+			const ShapeFrame *frame = shape->getFrame(_curFrame);
 			if (frame && frame->hasPoint(relx, rely)) {
 				uint8 rawpx = frame->getPixelAtPoint(relx, rely);
-				uint8 px_r = shape_->getPalette()->_palette[rawpx * 3];
-				uint8 px_g = shape_->getPalette()->_palette[rawpx * 3 + 1];
-				uint8 px_b = shape_->getPalette()->_palette[rawpx * 3 + 2];
-				
+				uint8 px_r = shape->getPalette()->_palette[rawpx * 3];
+				uint8 px_g = shape->getPalette()->_palette[rawpx * 3 + 1];
+				uint8 px_b = shape->getPalette()->_palette[rawpx * 3 + 2];
+
 				sprintf(buf2, "px: (%d/%d, %d/%d): %d (%d, %d, %d)", relx, frame->_xoff, rely, frame->_yoff, rawpx, px_r, px_g, px_b);
 				rendtext = font->renderText(buf2, remaining);
 				rendtext->draw(surf, 20, 25);
@@ -151,13 +151,12 @@ void ShapeViewerGump::PaintThis(RenderSurface *surf, int32 lerp_factor, bool /*s
 			}
 		}
 
-		
 	}
- 
+
 	{
 		// Additional shapeinfo (only in main shapes archive)
 		MainShapeArchive *mainshapes = dynamic_cast<MainShapeArchive *>(_flex);
-		if (!mainshapes || !shape_) return;
+		if (!mainshapes || !shape) return;
 
 		char buf3[128];
 		char buf4[128];
@@ -167,11 +166,11 @@ void ShapeViewerGump::PaintThis(RenderSurface *surf, int32 lerp_factor, bool /*s
 		if (info) {
 			sprintf(buf3, "x: %d, y: %d, z: %d\n flags: 0x%04X, family: %d",
 					info->_x, info->_y, info->_z, info->_flags, info->_family);
-			sprintf(buf4, "equip type: %d, unk. flags: 0x%02X\n weight: %d",
-					info->_equipType, info->_unknown, info->_weight);
-			sprintf(buf5, "vol: %d\n animtype: %d, animdata: %d",
-					info->_volume, info->_animType, info->_animData);
-			sprintf(buf6, "ShapeInfo: %s\n %s, %s\nUsecode: %s",
+			sprintf(buf4, "equip type: %d, weight: %d, vol: %d",
+					info->_equipType, info->_weight, info->_volume);
+			sprintf(buf5, "anim:  type: %d, data: %d, speed: %d",
+					info->_animType, info->_animData, info->_animSpeed);
+			sprintf(buf6, "ShapeInfo: %s\n%s\n%s\nUsecode: %s",
 					buf3, buf4, buf5, GameData::get_instance()->getMainUsecode()->get_class_name(_curShape));
 			rendtext = font->renderText(buf6, remaining);
 			rendtext->draw(surf, 20, _dims.height() - 58);
@@ -187,6 +186,7 @@ bool ShapeViewerGump::OnKeyDown(int key, int mod) {
 
 	switch (key) {
 	case Common::KEYCODE_UP:
+	case Common::KEYCODE_k:
 		if (delta >= _flex->getCount()) delta = 1;
 		if (_curShape < delta)
 			_curShape = _flex->getCount() + _curShape - delta;
@@ -196,6 +196,7 @@ bool ShapeViewerGump::OnKeyDown(int key, int mod) {
 		_curFrame = 0;
 		break;
 	case Common::KEYCODE_DOWN:
+	case Common::KEYCODE_j:
 		if (delta >= _flex->getCount()) delta = 1;
 		if (_curShape + delta >= _flex->getCount())
 			_curShape = _curShape + delta - _flex->getCount();
@@ -204,23 +205,25 @@ bool ShapeViewerGump::OnKeyDown(int key, int mod) {
 		_curFrame = 0;
 		shapechanged = true;
 		break;
-	case Common::KEYCODE_LEFT: {
-		Shape *shape_ = _flex->getShape(_curShape);
-		if (shape_ && shape_->frameCount()) {
-			if (delta >= shape_->frameCount()) delta = 1;
+	case Common::KEYCODE_LEFT:
+	case Common::KEYCODE_h: {
+		const Shape *shape = _flex->getShape(_curShape);
+		if (shape && shape->frameCount()) {
+			if (delta >= shape->frameCount()) delta = 1;
 			if (_curFrame < delta)
-				_curFrame = shape_->frameCount() + _curFrame - delta;
+				_curFrame = shape->frameCount() + _curFrame - delta;
 			else
 				_curFrame -= delta;
 		}
 	}
 	break;
-	case Common::KEYCODE_RIGHT: {
-		Shape *shape_ = _flex->getShape(_curShape);
-		if (shape_ && shape_->frameCount()) {
-			if (delta >= shape_->frameCount()) delta = 1;
-			if (_curFrame + delta >= shape_->frameCount())
-				_curFrame = _curFrame + delta - shape_->frameCount();
+	case Common::KEYCODE_RIGHT:
+	case Common::KEYCODE_l: {
+		const Shape *shape = _flex->getShape(_curShape);
+		if (shape && shape->frameCount()) {
+			if (delta >= shape->frameCount()) delta = 1;
+			if (_curFrame + delta >= shape->frameCount())
+				_curFrame = _curFrame + delta - shape->frameCount();
 			else
 				_curFrame += delta;
 		}
@@ -269,9 +272,9 @@ bool ShapeViewerGump::OnKeyDown(int key, int mod) {
 	}
 
 	if (shapechanged) {
-		Shape *shape_ = _flex->getShape(_curShape);
-		if (shape_)
-			shape_->getTotalDimensions(_shapeW, _shapeH, _shapeX, _shapeY);
+		const Shape *shape = _flex->getShape(_curShape);
+		if (shape)
+			shape->getTotalDimensions(_shapeW, _shapeH, _shapeX, _shapeY);
 	}
 
 	return true;

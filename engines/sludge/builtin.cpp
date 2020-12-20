@@ -19,6 +19,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  */
+#define SYMBIAN_USE_SYSTEM_REMOVE
 
 #include "common/config-manager.h"
 #include "common/savefile.h"
@@ -50,7 +51,6 @@
 #include "sludge/sprites.h"
 #include "sludge/statusba.h"
 #include "sludge/sludge.h"
-#include "sludge/utf8.h"
 #include "sludge/zbuffer.h"
 
 namespace Sludge {
@@ -470,9 +470,7 @@ builtIn(substring) {
 	wholeString = fun->stack->thisVar.getTextFromAnyVar();
 	trimStack(fun->stack);
 
-	UTF8Converter convert;
-	convert.setUTF8String(wholeString);
-	Common::U32String str32 = convert.getU32String();
+	Common::U32String str32 = wholeString.decode(Common::kUtf8);
 
 	if ((int)str32.size() < start + length) {
 		length = str32.size() - start;
@@ -484,10 +482,7 @@ builtIn(substring) {
 		length = 0;
 	}
 
-	int startoffset = convert.getOriginOffset(start);
-	int endoffset = convert.getOriginOffset(start + length);
-
-	Common::String newString(wholeString.begin() + startoffset, wholeString.begin() + endoffset);
+	Common::String newString = str32.substr(start, length).encode(Common::kUtf8);
 
 	fun->reg.makeTextVar(newString);
 	return BR_CONTINUE;

@@ -50,6 +50,9 @@ const ComprehendDetectionEntry COMPREHEND_GAMES[] = {
 	{"talisman", "g0", "35770d4815e610b5252e3fcd9f11def3"},
 #endif
 	{"transylvania", "tr.gda", "22e08633eea02ceee49b909dfd982d22"},
+#ifndef RELEASE_BUILD
+	{"transylvania", "g0", "384cbf0cd50888310fd33574e6baf880"},
+#endif
 
 	{nullptr, nullptr, nullptr}
 };

@@ -59,8 +59,8 @@ void Process::terminate() {
 	_flags |= PROC_TERMINATED;
 }
 
-void Process::wakeUp(uint32 result_) {
-	_result = result_;
+void Process::wakeUp(uint32 result) {
+	_result = result;
 
 	_flags &= ~PROC_SUSPENDED;
 
@@ -69,15 +69,19 @@ void Process::wakeUp(uint32 result_) {
 	onWakeUp();
 }
 
-void Process::waitFor(ProcId pid_) {
-	assert(pid_ != _pid);
-	if (pid_) {
+void Process::waitFor(ProcId pid) {
+	assert(pid != _pid);
+	if (pid) {
 		Kernel *kernel = Kernel::get_instance();
 
-		// add this process to waiting list of process pid_
-		Process *p = kernel->getProcess(pid_);
+		// add this process to waiting list of other process
+		Process *p = kernel->getProcess(pid);
 		assert(p);
 		p->_waiting.push_back(_pid);
+
+		// Note: The original games sync itemnum between processes
+		// here if either one is zero, but that seems to break things
+		// for us so we don't do it.
 	}
 
 	_flags |= PROC_SUSPENDED;
@@ -85,10 +89,10 @@ void Process::waitFor(ProcId pid_) {
 
 void Process::waitFor(Process *proc) {
 	assert(this != proc);
-	ProcId pid_ = 0;
-	if (proc) pid_ = proc->getPid();
+	ProcId pid = 0;
+	if (proc) pid = proc->getPid();
 
-	waitFor(pid_);
+	waitFor(pid);
 }
 
 void Process::suspend() {

@@ -28,6 +28,15 @@
 namespace Graphics {
 
 /**
+ * @defgroup graphics_vector_renderer_spec Specialized vector renderer
+ * @ingroup graphics
+ *
+ * @brief VectorRendererSpec class.
+ *
+ * @{
+ */
+
+/**
  * VectorRendererSpec: Specialized Vector Renderer Class
  *
  * This templated class implements the basic subset of vector operations for
@@ -65,9 +74,6 @@ public:
 			drawBevelSquareAlg(x, y, w, h, _bevel, _bevelColor, _fgColor);
 		}
 	}
-	void drawString(const Graphics::Font *font, const Common::String &text,
-		const Common::Rect &area, Graphics::TextAlign alignH, GUI::ThemeEngine::TextAlignVertical alignV,
-		int deltax, bool elipsis, const Common::Rect &textDrawableArea = Common::Rect(0, 0, 0, 0)) override;
 	void drawString(const Graphics::Font *font, const Common::U32String &text,
 		const Common::Rect &area, Graphics::TextAlign alignH, GUI::ThemeEngine::TextAlignVertical alignV,
 		int deltax, bool elipsis, const Common::Rect &textDrawableArea = Common::Rect(0, 0, 0, 0)) override;
@@ -382,6 +388,6 @@ protected:
 	    int baseLeft = 0, int baseRight = 0);
 };
 #endif
-
+/** @} */
 }
 #endif

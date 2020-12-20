@@ -49,7 +49,7 @@ enum {
 };
 
 
-enum {
+enum ScriptOpcode {
 	OPCODE_UNKNOWN,
 	OPCODE_HAVE_OBJECT,
 	OPCODE_OR,
@@ -60,12 +60,13 @@ enum {
 	OPCODE_VAR_GT2,
 	OPCODE_VAR_GTE1,
 	OPCODE_VAR_GTE2,
-	OPCODE_CURRENT_OBJECT_TAKEABLE,
+	OPCODE_CURRENT_IS_OBJECT,
 	OPCODE_OBJECT_PRESENT,
 	OPCODE_ELSE,
 	OPCODE_OBJECT_IN_ROOM,
 	OPCODE_CURRENT_OBJECT_NOT_VALID,
 	OPCODE_INVENTORY_FULL,
+	OPCODE_INVENTORY_FULL_X,
 	OPCODE_TEST_FLAG,
 	OPCODE_CURRENT_OBJECT_IN_ROOM,
 	OPCODE_HAVE_CURRENT_OBJECT,
@@ -88,6 +89,7 @@ enum {
 	OPCODE_TAKE_OBJECT,
 	OPCODE_MOVE_OBJECT_TO_ROOM,
 	OPCODE_SAVE_ACTION,
+	OPCODE_CLEAR_LINE,
 	OPCODE_MOVE_TO_ROOM,
 	OPCODE_VAR_ADD,
 	OPCODE_SET_ROOM_DESCRIPTION,
@@ -96,11 +98,11 @@ enum {
 	OPCODE_SET_OBJECT_DESCRIPTION,
 	OPCODE_SET_OBJECT_LONG_DESCRIPTION,
 	OPCODE_MOVE_DEFAULT,
-	OPCODE_MOVE_DIRECTION,
 	OPCODE_PRINT,
 	OPCODE_REMOVE_OBJECT,
 	OPCODE_SET_FLAG,
 	OPCODE_CALL_FUNC,
+	OPCODE_CALL_FUNC2,
 	OPCODE_TURN_TICK,
 	OPCODE_CLEAR_FLAG,
 	OPCODE_INVENTORY_ROOM,
@@ -116,18 +118,27 @@ enum {
 	OPCODE_VAR_DEC,
 	OPCODE_MOVE_CURRENT_OBJECT_TO_ROOM,
 	OPCODE_DESCRIBE_CURRENT_OBJECT,
-	OPCODE_SET_STRING_REPLACEMENT,
+	OPCODE_SET_STRING_REPLACEMENT1,
+	OPCODE_SET_STRING_REPLACEMENT2,
+	OPCODE_SET_STRING_REPLACEMENT3,
 	OPCODE_SET_CURRENT_NOUN_STRING_REPLACEMENT,
-	OPCODE_CURRENT_NOT_OBJECT,
-	OPCODE_CURRENT_IS_OBJECT,
 	OPCODE_DRAW_ROOM,
 	OPCODE_DRAW_OBJECT,
 	OPCODE_WAIT_KEY,
 	OPCODE_TEST_FALSE,
 	OPCODE_CAN_TAKE,
 	OPCODE_TOO_HEAVY,
-	OPCODE_NOT_MAX_WEIGHT,
-	OPCODE_OBJECT_CAN_TAKE
+	OPCODE_OBJECT_TAKEABLE,
+	OPCODE_OBJECT_CAN_TAKE,
+	OPCODE_CLEAR_INVISIBLE,
+	OPCODE_SET_INVISIBLE,
+	OPCODE_CLEAR_CAN_TAKE,
+	OPCODE_SET_CAN_TAKE,
+	OPCODE_CLEAR_FLAG40,
+	OPCODE_SET_FLAG40,
+	OPCODE_RANDOM_MSG,
+	OPCODE_SET_WORD,
+	OPCODE_CLEAR_WORD
 };
 
 /* Game state update flags */
@@ -193,6 +204,7 @@ struct FunctionState {
 	bool _and;
 	bool _inCommand;
 	bool _executed;
+	bool _notComparison;
 
 	FunctionState() {
 		clear();
@@ -300,6 +312,8 @@ struct Instruction {
 		clear();
 	}
 
+	Instruction(byte opcode, byte op1 = 0, byte op2 = 0, byte op3 = 0);
+
 	void clear();
 };
 
@@ -377,9 +391,7 @@ public:
 	uint8 _totalInventoryWeight;
 
 	Common::Array<Item> _items;
-
-	Word *_words;
-	size_t _nr_words;
+	Common::Array<Word> _words;
 
 	StringTable _strings;
 	StringTable _strings2;
@@ -388,6 +400,7 @@ public:
 	uint16 _variables[MAX_VARIABLES];
 
 	uint8 _currentReplaceWord;
+	uint8 _wordFlags;
 	uint _updateFlags;
 
 	Common::Array<WordMap> _wordMaps;
@@ -420,6 +433,15 @@ private:
 	uint64 string_get_chunk(uint8 *string);
 	char decode_string_elem(uint8 c, bool capital, bool special);
 
+	void parse_string_table(FileBuffer *fb, uint start_addr,
+		uint32 end_addr, StringTable *table);
+	void parse_variables(FileBuffer *fb);
+	void parse_flags(FileBuffer *fb);
+	void parse_replace_words(FileBuffer *fb);
+
+	void loadGameData();
+
+protected:
 	/**
 	 * Game strings are stored using 5-bit characters. By default a character
 	 * value maps to the lower-case letter table. If a character has the value 0x1e
@@ -430,15 +452,6 @@ private:
 	 */
 	Common::String parseString(FileBuffer *fb);
 
-	void parse_string_table(FileBuffer *fb, uint start_addr,
-		uint32 end_addr, StringTable *table);
-	void parse_variables(FileBuffer *fb);
-	void parse_flags(FileBuffer *fb);
-	void parse_replace_words(FileBuffer *fb);
-
-	void loadGameData();
-
-protected:
 	/**
 	 * The main game data file header has the offsets for where each bit of
 	 * game data is. The offsets have a magic constant value added to them.

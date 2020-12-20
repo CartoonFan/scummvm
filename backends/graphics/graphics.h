@@ -47,8 +47,7 @@ public:
 		return noGraphicsModes;
 	};
 	virtual int getDefaultGraphicsMode() const { return 0; }
-	virtual bool setGraphicsMode(int mode) { return (mode == 0); }
-	virtual void resetGraphicsScale() {}
+	virtual bool setGraphicsMode(int mode, uint flags = OSystem::kGfxModeNoFlags) { return (mode == 0); }
 	virtual int getGraphicsMode() const { return 0; }
 	virtual const OSystem::GraphicsMode *getSupportedShaders() const {
 		static const OSystem::GraphicsMode no_shader[2] = {{"NONE", "Normal (no shader)", 0}, {0, 0, 0}};
@@ -111,6 +110,9 @@ public:
 	// Graphics::PaletteManager interface
 	//virtual void setPalette(const byte *colors, uint start, uint num) = 0;
 	//virtual void grabPalette(byte *colors, uint start, uint num) const = 0;
+
+	virtual void saveScreenshot() {}
+	virtual bool lockMouse(bool lock) { return false; }
 };
 
 #endif

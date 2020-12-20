@@ -222,6 +222,7 @@ bool SurfaceSdlGraphicsManager::hasFeature(OSystem::Feature f) const {
 		(f == OSystem::kFeatureAspectRatioCorrection) ||
 		(f == OSystem::kFeatureFilteringMode) ||
 #if SDL_VERSION_ATLEAST(2, 0, 0)
+		(f == OSystem::kFeatureFullscreenToggleKeepsContext) ||
 		(f == OSystem::kFeatureStretchMode) ||
 #endif
 		(f == OSystem::kFeatureCursorPalette) ||
@@ -282,10 +283,6 @@ int SurfaceSdlGraphicsManager::getDefaultGraphicsMode() const {
 #else
 	return GFX_NORMAL;
 #endif
-}
-
-void SurfaceSdlGraphicsManager::resetGraphicsScale() {
-	setGraphicsMode(s_gfxModeSwitchTable[_scalerType][0]);
 }
 
 void SurfaceSdlGraphicsManager::beginGFXTransaction() {
@@ -617,7 +614,7 @@ int SurfaceSdlGraphicsManager::getGraphicsModeScale(int mode) const {
 	return scale;
 }
 
-bool SurfaceSdlGraphicsManager::setGraphicsMode(int mode) {
+bool SurfaceSdlGraphicsManager::setGraphicsMode(int mode, uint flags) {
 	Common::StackLock lock(_graphicsMutex);
 
 	assert(_transactionMode == kTransactionActive);
@@ -810,7 +807,7 @@ void SurfaceSdlGraphicsManager::initSize(uint w, uint h, const Graphics::PixelFo
 	if ((int)w != _videoMode.screenWidth || (int)h != _videoMode.screenHeight) {
 		const bool useDefault = defaultGraphicsModeConfig();
 		if (useDefault && w > 320) {
-			resetGraphicsScale();
+			setGraphicsMode(s_gfxModeSwitchTable[_scalerType][0]);
 		} else {
 			setGraphicsMode(getGraphicsModeIdByName(ConfMan.get("gfx_mode")));
 		}
@@ -2634,6 +2631,14 @@ SDL_Surface *SurfaceSdlGraphicsManager::SDL_SetVideoMode(int width, int height, 
 	if (!createOrUpdateWindow(width, height, createWindowFlags)) {
 		return nullptr;
 	}
+
+#if defined(MACOSX) && SDL_VERSION_ATLEAST(2, 0, 10)
+	// WORKAROUND: Bug #11430: "macOS: blurry content on Retina displays"
+	// Since SDL 2.0.10, Metal takes priority over OpenGL rendering on macOS,
+	// but this causes blurriness issues on Retina displays. Just switch
+	// back to OpenGL for now.
+	SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
+#endif
 
 	_renderer = SDL_CreateRenderer(_window->getSDLWindow(), -1, 0);
 	if (!_renderer) {

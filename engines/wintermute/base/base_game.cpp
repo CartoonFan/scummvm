@@ -36,6 +36,9 @@
 #include "engines/wintermute/base/font/base_font.h"
 #include "engines/wintermute/base/font/base_font_storage.h"
 #include "engines/wintermute/base/gfx/base_renderer.h"
+#ifdef ENABLE_WME3D
+#include "engines/wintermute/base/gfx/base_renderer3d.h"
+#endif
 #include "engines/wintermute/base/base_keyboard_state.h"
 #include "engines/wintermute/base/base_parser.h"
 #include "engines/wintermute/base/base_quick_msg.h"
@@ -76,6 +79,14 @@
 
 #if EXTENDED_DEBUGGER_ENABLED
 #include "engines/wintermute/base/scriptables/debuggable/debuggable_script_engine.h"
+#endif
+
+#ifdef ENABLE_WME3D
+#include "graphics/renderer.h"
+#include "engines/util.h"
+#if defined(USE_OPENGL_GAME) || defined(USE_OPENGL_SHADERS) || defined(USE_GLES2)
+#include "graphics/opengl/context.h"
+#endif
 #endif
 
 namespace Wintermute {
@@ -141,7 +152,16 @@ BaseGame::BaseGame(const Common::String &targetName) : BaseObject(this), _target
 
 	_cursorNoninteractive = nullptr;
 
+#ifdef ENABLE_WME3D
+	_useD3D = true;
+	_renderer3D = nullptr;
+	_playing3DGame = false;
+
+	_supportsRealTimeShadows = false;
+	_maxShadowType = SHADOW_STENCIL;
+#else
 	_useD3D = false;
+#endif
 
 	_musicSystem = new BaseGameMusic(this);
 
@@ -481,7 +501,52 @@ bool BaseGame::initialize1() {
 
 //////////////////////////////////////////////////////////////////////
 bool BaseGame::initialize2() { // we know whether we are going to be accelerated
+#ifdef ENABLE_WME3D
+	Common::String rendererConfig = ConfMan.get("renderer");
+	Graphics::RendererType desiredRendererType = Graphics::parseRendererTypeCode(rendererConfig);
+
+	if (!_playing3DGame && desiredRendererType == Graphics::kRendererTypeTinyGL) {
+		_renderer = makeOSystemRenderer(this);
+		if (_renderer == nullptr) {
+			return STATUS_FAILED;
+		}
+		return STATUS_OK;
+	}
+
+#if defined(USE_OPENGL_GAME) || defined(USE_OPENGL_SHADERS) || defined(USE_GLES2)
+	initGraphics3d(_settings->getResWidth(), _settings->getResHeight());
+	bool backendCapableOpenGL = g_system->hasFeature(OSystem::kFeatureOpenGLForGame);
+#endif
+
+#if defined(USE_OPENGL_GAME)
+	// Check the OpenGL context actually supports shaders
+	if (backendCapableOpenGL && desiredRendererType == Graphics::kRendererTypeOpenGLShaders && !OpenGLContext.shadersSupported) {
+		desiredRendererType = Graphics::kRendererTypeOpenGL;
+	}
+#endif
+
+#if defined(USE_OPENGL_SHADERS) || defined(USE_GLES2)
+	if (backendCapableOpenGL && desiredRendererType == Graphics::kRendererTypeOpenGLShaders) {
+		_renderer3D = makeOpenGL3DShaderRenderer(this);
+	}
+#endif // defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)
+#if defined(USE_OPENGL_GAME)
+	if (backendCapableOpenGL && desiredRendererType == Graphics::kRendererTypeOpenGL) {
+		_renderer3D = makeOpenGL3DRenderer(this);
+	}
+#endif // defined(USE_OPENGL)
+	if (_playing3DGame && desiredRendererType == Graphics::kRendererTypeTinyGL) {
+		_renderer3D = nullptr;// TODO: makeTinyGL3DRenderer(this);
+		error("3D software renderered is not supported yet");
+	}
+	_renderer = _renderer3D;
+#if !defined(USE_OPENGL_GAME) && !defined(USE_OPENGL_SHADERS) && !defined(USE_GLES2)
+	if (!_playing3DGame && !_renderer3D)
+		_renderer = makeOSystemRenderer(this);
+#endif
+#else
 	_renderer = makeOSystemRenderer(this);
+#endif
 	if (_renderer == nullptr) {
 		return STATUS_FAILED;
 	}
@@ -562,6 +627,42 @@ void BaseGame::LOG(bool res, const char *fmt, ...) {
 	//QuickMessage(buff);
 }
 
+#ifdef ENABLE_WME3D
+bool BaseGame::setMaxShadowType(TShadowType maxShadowType) {
+	if (maxShadowType > SHADOW_STENCIL) {
+		maxShadowType = SHADOW_STENCIL;
+	}
+
+	if (maxShadowType < 0) {
+		maxShadowType = SHADOW_NONE;
+	}
+
+	if (maxShadowType == SHADOW_FLAT && !_supportsRealTimeShadows) {
+		maxShadowType = SHADOW_SIMPLE;
+	}
+
+	_maxShadowType = maxShadowType;
+
+	return STATUS_OK;
+}
+
+TShadowType BaseGame::getMaxShadowType(BaseObject *object) {
+	if (object) {
+		return MIN(_maxShadowType, object->_shadowType);
+	} else {
+		return _maxShadowType;
+	}
+}
+
+uint32 BaseGame::getAmbientLightColor() {
+	return 0x00000000;
+}
+
+bool BaseGame::getFogParams(FogParameters &fogParameters) {
+	fogParameters._enabled = false;
+	return true;
+}
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 void BaseGame::setEngineLogCallback(ENGINE_LOG_CALLBACK callback, void *data) {
@@ -1931,6 +2032,36 @@ bool BaseGame::scCallMethod(ScScript *script, ScStack *stack, ScStack *thisStack
 		return STATUS_OK;
 	}
 
+#ifdef ENABLE_WME3D
+	//////////////////////////////////////////////////////////////////////////
+	// IsShadowTypeSupported
+	//////////////////////////////////////////////////////////////////////////
+	else if (strcmp(name, "IsShadowTypeSupported") == 0) {
+		stack->correctParams(1);
+		TShadowType type = static_cast<TShadowType>(stack->pop()->getInt());
+
+		switch (type) {
+		case SHADOW_NONE:
+		case SHADOW_SIMPLE:
+			stack->pushBool(true);
+			break;
+
+		case SHADOW_FLAT:
+			stack->pushBool(_supportsRealTimeShadows);
+			break;
+
+		case SHADOW_STENCIL:
+			stack->pushBool(_gameRef->_renderer3D->stencilSupported());
+			break;
+
+		default:
+			stack->pushBool(false);
+		}
+
+		return STATUS_OK;
+	}
+#endif
+
 	//////////////////////////////////////////////////////////////////////////
 	// StoreSaveThumbnail
 	//////////////////////////////////////////////////////////////////////////
@@ -2450,6 +2581,93 @@ ScValue *BaseGame::scGetProperty(const Common::String &name) {
 		return _scValue;
 	}
 
+#ifdef ENABLE_WME3D
+	//////////////////////////////////////////////////////////////////////////
+	// Shadows (obsolete)
+	//////////////////////////////////////////////////////////////////////////
+	else if (name == "Shadows") {
+		_scValue->setBool(_maxShadowType > SHADOW_NONE);
+		return _scValue;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// SimpleShadows (obsolete)
+	//////////////////////////////////////////////////////////////////////////
+	else if (name == "SimpleShadows") {
+		_scValue->setBool(_maxShadowType == SHADOW_SIMPLE);
+		return _scValue;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// SupportsRealTimeShadows (obsolete)
+	//////////////////////////////////////////////////////////////////////////
+	else if (name == "SupportsRealTimeShadows") {
+		_renderer3D->enableShadows();
+		_scValue->setBool(_supportsRealTimeShadows);
+		return _scValue;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// MaxShadowType
+	//////////////////////////////////////////////////////////////////////////
+	else if (name == "MaxShadowType") {
+		_scValue->setInt(_maxShadowType);
+		return _scValue;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// MaxActiveLights
+	//////////////////////////////////////////////////////////////////////////
+	else if (name == "MaxActiveLights") {
+		if (_useD3D) {
+			_scValue->setInt(_renderer3D->maximumLightsCount());
+		} else {
+			_scValue->setInt(0);
+		}
+
+		return _scValue;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Direct3DDevice
+	//////////////////////////////////////////////////////////////////////////
+	else if (name == "Direct3DDevice") {
+		warning("BaseGame::scGetProperty Direct3D device is not available");
+		_scValue->setNULL();
+
+		return _scValue;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// DirectDrawInterface
+	//////////////////////////////////////////////////////////////////////////
+	else if (name == "DirectDrawInterface") {
+		warning("BaseGame::scGetProperty DirectDraw interface is not available");
+		_scValue->setNULL();
+
+		return _scValue;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// HardwareTL
+	//////////////////////////////////////////////////////////////////////////
+	else if (name == "HardwareTL") {
+		// TODO: Once we have a TinyGL renderer, we could potentially return false here
+		// otherwise, as long as WME3D is enabled, vertex processing is done by the hardware
+		_scValue->setBool(true);
+		return _scValue;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// UsedMemory
+	//////////////////////////////////////////////////////////////////////////
+	else if (name == "UsedMemory") {
+		// wme only returns a non-zero value in debug mode
+		_scValue->setInt(0);
+		return _scValue;
+	}
+#endif
+
 	//////////////////////////////////////////////////////////////////////////
 	// AcceleratedMode / Accelerated (RO)
 	//////////////////////////////////////////////////////////////////////////
@@ -2883,6 +3101,42 @@ bool BaseGame::scSetProperty(const char *name, ScValue *value) {
 		_videoSubtitles = value->getBool();
 		return STATUS_OK;
 	}
+
+#ifdef ENABLE_WME3D
+	//////////////////////////////////////////////////////////////////////////
+	// Shadows (obsolete)
+	//////////////////////////////////////////////////////////////////////////
+	else if (strcmp(name, "Shadows") == 0) {
+		if (value->getBool()) {
+			setMaxShadowType(SHADOW_STENCIL);
+		} else {
+			setMaxShadowType(SHADOW_NONE);
+		}
+
+		return STATUS_OK;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// SimpleShadows (obsolete)
+	//////////////////////////////////////////////////////////////////////////
+	else if (strcmp(name, "SimpleShadows") == 0) {
+		if (value->getBool()) {
+			setMaxShadowType(SHADOW_SIMPLE);
+		} else {
+			setMaxShadowType(SHADOW_STENCIL);
+		}
+
+		return STATUS_OK;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// MaxShadowType
+	//////////////////////////////////////////////////////////////////////////
+	else if (strcmp(name, "MaxShadowType") == 0) {
+		setMaxShadowType(static_cast<TShadowType>(value->getInt()));
+		return STATUS_OK;
+	}
+#endif
 
 	//////////////////////////////////////////////////////////////////////////
 	// TextEncoding
@@ -3652,6 +3906,12 @@ bool BaseGame::persist(BasePersistenceManager *persistMgr) {
 	if (!persistMgr->getIsSaving()) {
 		_quitting = false;
 	}
+
+#ifdef ENABLE_WME3D
+	if (BaseEngine::instance().getFlags() & GF_3D) {
+		persistMgr->transferSint32(TMEMBER_INT(_maxShadowType));
+	}
+#endif
 
 	return STATUS_OK;
 }

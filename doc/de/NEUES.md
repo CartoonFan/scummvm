@@ -4,19 +4,104 @@ Programmcodes finden Sie auf Englisch unter:
 
 #### 2.3.0 (DD.MM.YYYY)
 
+ Neue Spiele:
+   - Unterstützung für Grim Fandango hinzugefügt.
+   - Unterstützung für Escape from Monkey Island hinzugefügt.
+   - Unterstützung für The Longest Journey hinzugefügt.
+   - Unterstützung für Myst 3: Exile hinzugefügt.
+   - Unterstützung für Hades' Challenge hinzugefügt.
+   - Unterstützung für Little Big Adventure hinzugefügt.
+   - Unterstützung für Red Comrades 1: Save the Galaxy hinzugefügt.
+   - Unterstützung für Red Comrades 2: For the Great Justice hinzugefügt.
+
  Allgemein:
    - Die ScummVM-Benutzeroberfläche unterstützt nun UTF-32.
+   - Code der Roland MT-32-Emulation auf Munt 2.4.1 aktualisiert.
+
+ Dreamweb:
+   - Darstellungsfehler in der russischen Fan-Übersetzung behoben.
+
+ Glk:
+   - Probleme mit Spielständen in mehreren Sub-Engines behoben.
+   - Speicherüberlauf im Erkennungsmechanismus für Level9-Spiele behoben.
+   - Unterstützung für die Spiele der IF Comp 2020 hinzugefügt.
+   - Die Sub-Engine Glulx ist jetzt aktiviert.
+
+ Gob:
+   - Unterstützung für die russische Fan-Übersetzung von Bargon Attack hinzugefügt.
+   - Unterstützung für die russische Übersetzung von Woodruff hinzugefügt.
+
+ Grim:
+   - Unterstützung für die Version in brasilianischem Portugiesisch von Grim Fandango hinzugefügt.
+   - Unterstützung für die russische Version von Escape from Monkey Island hinzugefügt.
+
+ Kyra:
+   - Unterstützung für die japanische Sega-CD-Version von Eye of the Beholder hinzugefügt.
+   - Unterstützung für die hebräische Fan-Übersetzung von Legend of Kyrandia hinzugefügt.
+
+ Lure:
+   - Die Feuer-Animation im ersten Raum wird nun auch nach dem Laden eines Spielstands abgespielt.
+   - Unterstützung für MT-32 korrigiert.
 
  SAGA:
    - Unterstützung für ITE GOG Mac CD v1.1 hinzugefügt.
+   - Unterstützung für die japanische Version von ITE PC-98 hinzugefügt.
+
+ SCI:
+   - Unterstützung für RGB-Rendering (16/32bpp) für SCI0 - SCI1.1-Spiele hinzugefügt. Dadurch werden Probleme
+     mit der Farbpalette während Bildschirmübergängen und Probleme bei der Darstellung von Mac-QuickTime-Videos korrigiert.
+   - Unterstützung für benutzerdefinierte Farbpaletten in SQ3 und LSL2 des FreeSCI-Projekts hinzugefügt.
+     Wenn diese Mods aktiviert werden, wird die grafische Darstellung in diesen beiden Spielen verbessert.
+   - Unterstützung für die koreanischen Fan-Übersetzungen von Castle of Dr. Brain, Eco Quest, Gabriel Knight,
+     King's Quest 1, 5 und 6, Laura Bow 2: Dagger of Amon Ra und Space Quest 4 hinzugefügt.
+   - Unterstützung für zahlreiche koreanische Übersetzungen des scummkor-Projektes hinzugefügt.
+   - Unterstützung für die russische Version von LSL6 hinzugefügt.
+   - Unterstützung für eine alternative russische Version von LSL7 hinzugefügt.
+
+ SCUMM:
+   - Textdarstellung in der chinesischen, japanischen und koreanischen Version von The Dig und
+     the Curse of Monkey Island korrigiert. Diese Fehlerkorrekturen beinhalten auch einige allgemeine
+     Verbesserungen an der Textdarstellung (hauptsächlich bezüglich der Formatierung von Text-Umbrüchen).
+   - Darstellung des Pause- und Neustart-Dialogs in der chinesischen, japanischen und koreanischen Version
+     der Benutzeroberfläche korrigiert.
+   - Unterstützung für zahlreiche koreanische Übersetzungen des scummkor-Projektes hinzugefügt.
+   - Unterstützung für die Russobit-M-Versionen von Pajama2 und SpyOzone hinzugefügt.
+   - Sprachausgabe in der Akella-Version von COMI korrigiert.
+
+ Tinsel:
+   - Unterstützung für die Rückkehr zur ScummVM-Benutzeroberfläche hinzugefügt.
+
+ TsAGE:
+   - Unterstützung für eine weitere Disketten-Version hinzugefügt.
+
+ Stark:
+   - Unterstützung für die ungarische Übersetzung hinzugefügt.
 
  Supernova:
    - Teil 1 von Supernova ist nun in einer italienischen Übersetzung verfügbar.
 
+ Sword25:
+   - Unterstützung für die entpackte Version hinzugefügt.
+   - Absturz behoben, der auftritt, wenn kroatisch als Spielsprache gewählt wird.
+
+ Ultima:
+   - Ultima 4: Erweiterung des Debuggers um mehrere Befehle.
+   - Ultima 4: Die Return-Taste kann nun dazu genutzt werden, die ZStats-Anzeige zu verlassen.
+
  Xeen:
    - Gelegentliche Grafikfehler in Kampf-Szenen korrigiert.
+   - Verbesserte Unterstützung für Zwischensequenzen, die nun dem Original genauer entsprechen.
 
-#### 2.2.0 (27.09.2020)
+ AmigaOS-Portierung:
+   - Unterstützung für native Dateisystem-Dialoge hinzugefügt.
+   - Der nuked OPL Adlib-Treiber ist wieder aktiviert.
+
+ MorphOS-Portierung:
+   - Unterstützung für native Dateisystem-Dialoge hinzugefügt.
+   - Unterstützung für die Cloud-Anbindung hinzugefügt.
+   - Der nuked OPL Adlib-Treiber ist wieder aktiviert.
+
+#### 2.2.0 "Interactive Fantasy" (27.09.2020)
 
  Neue Spiele:
    - Unterstützung für Blazing Dragons hinzugefügt.

@@ -27,6 +27,7 @@
 #include "backends/events/sdl/sdl-events.h"
 #include "backends/platform/sdl/sdl.h"
 #include "backends/graphics/graphics.h"
+#include "backends/graphics3d/sdl/sdl-graphics3d.h"
 #include "common/config-manager.h"
 #include "common/textconsole.h"
 #include "common/fs.h"
@@ -37,22 +38,8 @@
 #define GAMECONTROLLERDB_FILE "gamecontrollerdb.txt"
 
 static uint32 convUTF8ToUTF32(const char *src) {
-	uint32 utf32 = 0;
-
-	char *dst = SDL_iconv_string(
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-	                             "UTF-32BE",
-#else
-	                             "UTF-32LE",
-#endif
-                                 "UTF-8", src, SDL_strlen(src) + 1);
-
-	if (dst) {
-		utf32 = *((uint32 *)dst);
-		SDL_free(dst);
-	}
-
-	return utf32;
+	Common::U32String u32(src);
+	return u32[0];
 }
 
 void SdlEventSource::loadGameControllerMappingFile() {
@@ -156,7 +143,7 @@ int SdlEventSource::mapKey(SDL_Keycode sdlKey, SDL_Keymod mod, Uint16 unicode) {
 	if (key >= Common::KEYCODE_F1 && key <= Common::KEYCODE_F9) {
 		return key - Common::KEYCODE_F1 + Common::ASCII_F1;
 	} else if (key >= Common::KEYCODE_KP0 && key <= Common::KEYCODE_KP9) {
-		// WORKAROUND:  Disable this change for AmigaOS4 as it is breaking numpad usage ("fighting") on that platform.
+		// WORKAROUND:  Disable this change for AmigaOS as it's breaking numpad usage ("fighting") on that platform.
 		// This fixes bug #10558.
 		// The actual issue here is that the SCUMM engine uses ASCII codes instead of keycodes for input.
 		// See also the relevant FIXME in SCUMM's input.cpp.
@@ -179,15 +166,21 @@ int SdlEventSource::mapKey(SDL_Keycode sdlKey, SDL_Keymod mod, Uint16 unicode) {
 	}
 }
 
-bool SdlEventSource::processMouseEvent(Common::Event &event, int x, int y) {
+bool SdlEventSource::processMouseEvent(Common::Event &event, int x, int y, int relx, int rely) {
 	_mouseX = x;
 	_mouseY = y;
 
 	event.mouse.x = x;
 	event.mouse.y = y;
+	event.relMouse.x = relx;
+	event.relMouse.y = rely;
 
 	if (_graphicsManager) {
-		return _graphicsManager->notifyMousePosition(event.mouse);
+		if (dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)) {
+			dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)->notifyMousePosition(event.mouse);
+		} else if (dynamic_cast<SdlGraphicsManager *>(_graphicsManager)) {
+			dynamic_cast<SdlGraphicsManager *>(_graphicsManager)->notifyMousePosition(event.mouse);
+		}
 	}
 
 	return true;
@@ -506,10 +499,28 @@ bool SdlEventSource::dispatchSDLEvent(SDL_Event &ev, Common::Event &event) {
 		}
 
 	case SDL_WINDOWEVENT:
+		// We're only interested in events from the current display window
+		if (_graphicsManager) {
+			uint32 windowID = 0;
+			if (dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)) {
+				windowID = SDL_GetWindowID(dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)->getWindow()->getSDLWindow());
+			} else if (dynamic_cast<SdlGraphicsManager *>(_graphicsManager)) {
+				windowID = SDL_GetWindowID(dynamic_cast<SdlGraphicsManager *>(_graphicsManager)->getWindow()->getSDLWindow());
+			}
+			if (windowID != ev.window.windowID) {
+				return false;
+			}
+		}
+
 		switch (ev.window.event) {
 		case SDL_WINDOWEVENT_EXPOSED:
-			if (_graphicsManager)
-				_graphicsManager->notifyVideoExpose();
+			if (_graphicsManager) {
+				if (dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)) {
+					dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)->notifyVideoExpose();
+				} else if (dynamic_cast<SdlGraphicsManager *>(_graphicsManager)) {
+					dynamic_cast<SdlGraphicsManager *>(_graphicsManager)->notifyVideoExpose();
+				}
+			}
 			return false;
 
 		// SDL2 documentation indicate that SDL_WINDOWEVENT_SIZE_CHANGED is sent either as a result
@@ -566,8 +577,13 @@ bool SdlEventSource::dispatchSDLEvent(SDL_Event &ev, Common::Event &event) {
 		return true;
 #else
 	case SDL_VIDEOEXPOSE:
-		if (_graphicsManager)
-			_graphicsManager->notifyVideoExpose();
+		if (_graphicsManager) {
+			if (dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)) {
+				dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)->notifyVideoExpose();
+			} else if (dynamic_cast<SdlGraphicsManager *>(_graphicsManager)) {
+				dynamic_cast<SdlGraphicsManager *>(_graphicsManager)->notifyVideoExpose();
+			}
+		}
 		return false;
 
 	case SDL_VIDEORESIZE:
@@ -667,7 +683,7 @@ bool SdlEventSource::handleKeyUp(SDL_Event &ev, Common::Event &event) {
 bool SdlEventSource::handleMouseMotion(SDL_Event &ev, Common::Event &event) {
 	event.type = Common::EVENT_MOUSEMOVE;
 
-	return processMouseEvent(event, ev.motion.x, ev.motion.y);
+	return processMouseEvent(event, ev.motion.x, ev.motion.y, ev.motion.xrel, ev.motion.yrel);
 }
 
 bool SdlEventSource::handleMouseButtonDown(SDL_Event &ev, Common::Event &event) {
@@ -960,8 +976,11 @@ void SdlEventSource::setEngineRunning(const bool value) {
 
 bool SdlEventSource::handleResizeEvent(Common::Event &event, int w, int h) {
 	if (_graphicsManager) {
-		_graphicsManager->notifyResize(w, h);
-
+		if (dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)) {
+			dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)->notifyResize(w, h);
+		} else if (dynamic_cast<SdlGraphicsManager *>(_graphicsManager)) {
+			dynamic_cast<SdlGraphicsManager *>(_graphicsManager)->notifyResize(w, h);
+		}
 		// If the screen changed, send an Common::EVENT_SCREEN_CHANGED
 		int screenID = g_system->getScreenChangeID();
 		if (screenID != _lastScreenID) {

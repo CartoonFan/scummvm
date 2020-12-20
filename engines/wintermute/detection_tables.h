@@ -28,6 +28,7 @@ namespace Wintermute {
 static const PlainGameDescriptor wintermuteGames[] = {
 	{"5ld",             "Five Lethal Demons"},
 	{"5ma",             "Five Magical Amulets"},
+	{"8squares",        "Eight Squares in The Garden"},
 	{"actualdest",      "Actual Destination"},
 	{"agustin",         "Boredom of Agustin Cordes"},
 	{"alavi",           "Informer Alavi - Murder of Miss Rojan"},
@@ -107,6 +108,7 @@ static const PlainGameDescriptor wintermuteGames[] = {
 	{"palladion",       "Palladion"},
 	{"papasdaughters1", "Papa's Daughters"},
 	{"papasdaughters2", "Papa's Daughters Go to the Sea"},
+	{"petka02", "Red Comrades 0.2: Operation F."},
 	{"pigeons",         "Pigeons in the Park"},
 	{"pizzamorgana",    "Pizza Morgana: Episode 1 - Monsters and Manipulations in the Magical Forest"},
 	{"polechudes",      "Pole Chudes"},
@@ -240,6 +242,10 @@ static const WMEGameDescription gameDescriptions[] = {
 		WME_ENTRY2s("polish.dcp", "bb877d48795471a17f25b0b5109100d1", 1132197,
 					"data.dcp", "0134e92bcd5fd2837df3971087e96067", 163316498), Common::PL_POL, ADGF_UNSTABLE, WME_1_3_3),
 
+	// Eight Squares in The Garden
+	WME_WINENTRY("8squares", "",
+		WME_ENTRY1s("data.dcp", "8788577bffe33ae059e13aa862dabd31", 29931982), Common::EN_ANY, ADGF_UNSTABLE, WME_1_8_6),
+
 	// Actual Destination
 	WME_WINENTRY("actualdest", "",
 		WME_ENTRY1s("data.dcp", "6926f44b26f21ceb1d840eaab9aeb510", 9081740), Common::EN_ANY, ADGF_UNSTABLE, WME_1_8_11),
@@ -344,6 +350,10 @@ static const WMEGameDescription gameDescriptions[] = {
 	WME_WINENTRY("alphapolaris", "Demo",
 		WME_ENTRY2s("data.dcp", "130545e152d0b53d84c2c99ce118d5e5", 409564920,
 					"german language pack.dcp", "71e19682f93399018bef90ceda0a1bfd", 16174995), Common::DE_DEU, ADGF_UNSTABLE | ADGF_DEMO | GF_3D, WME_1_9_3),
+
+	// Alpha Polaris (Polish Demo)
+	WME_WINENTRY("alphapolaris", "Demo",
+		WME_ENTRY1s("data.dcp", "c040af58c38c40997fce4b4832f43a5d", 416066977), Common::PL_POL, ADGF_UNSTABLE | ADGF_DEMO | GF_3D, WME_1_9_1),
 
 	// Apeiron
 	WME_WINENTRY("apeiron", "",
@@ -485,6 +495,10 @@ static const WMEGameDescription gameDescriptions[] = {
 	// Carol Reed 5 - The Colour of Murder (Spanish)
 	WME_WINENTRY("carolreed5", "",
 		WME_ENTRY1s("data.dcp", "a2885bbc31a7f0b0f616ec7f4d9a6fae", 617467065), Common::ES_ESP, ADGF_UNSTABLE, WME_1_8_6),
+
+	// Carol Reed 5 - The Colour of Murder (1.0 Demo)
+	WME_WINENTRY("carolreed5", "Demo",
+		WME_ENTRY1s("data.dcp", "0b4cb2b9eb5322acb7d8701db95dc721", 92019500), Common::EN_ANY, ADGF_UNSTABLE | ADGF_DEMO, WME_1_8_6),
 
 	// Carol Reed 5 - The Colour of Murder (1.0 Demo)
 	WME_WINENTRY("carolreed5", "Demo",
@@ -1273,6 +1287,15 @@ static const WMEGameDescription gameDescriptions[] = {
 					"parche9.dcp", "05363aa13cb8aa5a3fafc68adb4dda5a", 207640138,
 					"parche91e.dcp", "ee21819363fb32a38b9f5fcf8545e374", 72496832), Common::ES_ESP, ADGF_UNSTABLE, WME_1_9_3),
 
+
+	// James Peris: No License Nor Control (Older Demo) (English)
+	WME_WINENTRY("jamesperis", "Older Demo",
+		WME_ENTRY1s("data.dcp", "05d6e37f1078fac57a088f96da4a2ea1", 87340874), Common::EN_ANY, ADGF_UNSTABLE | ADGF_DEMO, WME_1_8_6),
+
+	// James Peris: No License Nor Control (Older Demo) (Spanish)
+	WME_WINENTRY("jamesperis", "Older Demo",
+		WME_ENTRY1s("data.dcp", "c8c0e63bcc4dbfb76d1048bdc3a38248", 100274569), Common::ES_ESP, ADGF_UNSTABLE | ADGF_DEMO, WME_1_8_6),
+
 	// James Peris: No License Nor Control (Demo) (English)
 	WME_WINENTRY("jamesperis", "Demo",
 		WME_ENTRY1s("data.dcp", "edb9f9c7a08993c1e28f4e477b5f9830", 116113507), Common::EN_ANY, ADGF_UNSTABLE | ADGF_DEMO, WME_1_9_1),
@@ -1403,9 +1426,13 @@ static const WMEGameDescription gameDescriptions[] = {
 	WME_WINENTRY("kulivocko", "",
 		WME_ENTRY1s("data.dcp", "44306dc470e9b27474043932eccee02f", 155106392), Common::CZ_CZE, ADGF_UNSTABLE, WME_1_9_1),
 
-	// Kulivocko (Czech) (Demo)
-	WME_WINENTRY("kulivocko", "Demo",
+	// Kulivocko (Czech) (Demo 1)
+	WME_WINENTRY("kulivocko", "Demo 1",
 		WME_ENTRY1s("data.dcp", "63b164bdfadecbb0deb5da691afb8154", 48362234), Common::CZ_CZE, ADGF_UNSTABLE | ADGF_DEMO, WME_1_9_1),
+
+	// Kulivocko (Czech) (Demo 2)
+	WME_WINENTRY("kulivocko", "Demo 2",
+		WME_ENTRY1s("data.dcp", "501c59ddb787646d87dead183199c8ed", 73601289), Common::CZ_CZE, ADGF_UNSTABLE | ADGF_DEMO, WME_1_9_1),
 
 	// Life In 3 Minutes
 	WME_WINENTRY("lifein3minutes", "",
@@ -1548,6 +1575,14 @@ static const WMEGameDescription gameDescriptions[] = {
 	// Papa's Daughters 2
 	WME_WINENTRY("papasdaughters2", "",
 		WME_ENTRY1s("data.dcp", "8f7dfc4b46c01318ba2bd8e1d79a0edb", 107690073), Common::RU_RUS, ADGF_UNSTABLE, WME_HEROCRAFT),
+
+	// Red Comrades 0.2: Operation F. (Fan game) (Demo 2015)
+	WME_WINENTRY("petka02", "Demo 2015",
+		WME_ENTRY1s("data.dcp", "aeba8e75c26625d744f866813450c1d4", 108623057), Common::RU_RUS, ADGF_UNSTABLE | ADGF_DEMO, WME_1_9_1),
+
+	// Red Comrades 0.2: Operation F. (Fan game) (Demo 2017)
+	WME_WINENTRY("petka02", "Demo 2017",
+		WME_ENTRY1s("data.dcp", "20d138270fd7552be9c1959cbfb8bcd7", 29081611), Common::RU_RUS, ADGF_UNSTABLE | ADGF_DEMO, WME_1_9_3),
 
 	// Pigeons in the Park
 	WME_WINENTRY("pigeons", "",
@@ -5124,9 +5159,13 @@ static const WMEGameDescription gameDescriptions[] = {
 	WME_WINENTRY("strangechange", "",
 		WME_ENTRY1s("data.dcp", "818e53c1584dac28f336195d7dcfb97d", 3762512), Common::EN_ANY, ADGF_UNSTABLE | GF_3D, WME_1_8_6),
 
+	// Sunrise: The game (German)
+	WME_WINENTRY("sunrise", "",
+		WME_ENTRY1s("data.dcp", "d06744fc60982a30e82d96075698c8bc", 134409552), Common::DE_DEU, ADGF_UNSTABLE | GF_3D, WME_1_7_93),
+
 	// Sunrise: The game (Demo) (German)
 	// NOTE: This is a 2.5D game that is out of ScummVM scope
-	WME_WINENTRY("sunrise", "",
+	WME_WINENTRY("sunrise", "Demo",
 		WME_ENTRY1s("data.dcp", "3bac4da87472d2e7676e9548970d521a", 52095549), Common::DE_DEU, ADGF_UNSTABLE | ADGF_DEMO | GF_3D, WME_1_7_93),
 
 	// Tanya Grotter and the Magical Double Bass

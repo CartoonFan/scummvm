@@ -36,6 +36,9 @@
 #ifdef USE_DISCORD
 class DiscordPresence;
 #endif
+#if defined(USE_OPENGL_GAME) || defined(USE_OPENGL_SHADERS) || defined(USE_GLES2)
+#include "backends/graphics3d/openglsdl/openglsdl-graphics3d.h"
+#endif
 
 /**
  * Base OSystem class for all SDL ports.
@@ -75,7 +78,7 @@ public:
 	virtual bool setTextInClipboard(const Common::U32String &text) override;
 #endif
 
-	virtual void setWindowCaption(const char *caption) override;
+	virtual void setWindowCaption(const Common::U32String &caption) override;
 	virtual void addSysArchivesToSearchSet(Common::SearchSet &s, int priority = 0) override;
 	virtual uint32 getMillis(bool skipRecord = false) override;
 	virtual void delayMillis(uint msecs) override;
@@ -86,6 +89,10 @@ public:
 
 	//Screenshots
 	virtual Common::String getScreenshotsPath();
+
+#if defined(USE_OPENGL_GAME) || defined(USE_OPENGL_SHADERS) || defined(USE_GLES2)
+	Common::Array<uint> getSupportedAntiAliasingLevels() const override;
+#endif
 
 protected:
 	bool _inited;
@@ -119,6 +126,15 @@ protected:
 	 */
 	SdlWindow *_window;
 
+	SdlGraphicsManager::State _gfxManagerState;
+
+#if defined(USE_OPENGL_GAME) || defined(USE_OPENGL_SHADERS) || defined(USE_GLES2)
+	// Graphics capabilities
+	void detectFramebufferSupport();
+	void detectAntiAliasingSupport();
+	OpenGLSdlGraphics3dManager::Capabilities _capabilities;
+#endif
+
 	/**
 	 * Initialze the SDL library.
 	 */
@@ -150,11 +166,9 @@ protected:
 
 	virtual const OSystem::GraphicsMode *getSupportedGraphicsModes() const override;
 	virtual int getDefaultGraphicsMode() const override;
-	virtual bool setGraphicsMode(int mode) override;
+	virtual bool setGraphicsMode(int mode, uint flags) override;
 	virtual int getGraphicsMode() const override;
 #endif
-protected:
-	virtual char *convertEncoding(const char *to, const char *from, const char *string, size_t length) override;
 };
 
 #endif

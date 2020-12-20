@@ -110,7 +110,10 @@
 #include "ultima/ultima8/world/actors/surrender_process.h"
 #include "ultima/ultima8/world/actors/combat_process.h"
 #include "ultima/ultima8/world/actors/guard_process.h"
+#include "ultima/ultima8/world/actors/attack_process.h"
+#include "ultima/ultima8/world/actors/pace_process.h"
 #include "ultima/ultima8/world/fireball_process.h"
+#include "ultima/ultima8/world/super_sprite_process.h"
 #include "ultima/ultima8/world/destroy_item_process.h"
 #include "ultima/ultima8/world/actors/ambush_process.h"
 #include "ultima/ultima8/world/actors/pathfinder.h"
@@ -174,15 +177,20 @@ Ultima8Engine::~Ultima8Engine() {
 }
 
 Common::Error Ultima8Engine::run() {
+	bool result = true;
 	if (initialize()) {
-		startup();
-		runGame();
+		result = startup();
+		if (result)
+			result = runGame();
 
 		deinitialize();
 		shutdown();
 	}
 
-	return Common::kNoError;
+	if (result)
+		return Common::kNoError;
+	else
+		return Common::kNoGameDataFoundError;
 }
 
 
@@ -199,7 +207,7 @@ bool Ultima8Engine::initialize() {
 void Ultima8Engine::deinitialize() {
 }
 
-void Ultima8Engine::startup() {
+bool Ultima8Engine::startup() {
 	setDebugger(new Debugger());
 	pout << "-- Initializing Pentagram -- " << Std::endl;
 
@@ -301,6 +309,12 @@ void Ultima8Engine::startup() {
 		ProcessLoader<CrosshairProcess>::load);
 	_kernel->addProcessLoader("ItemSelectionProcess",
 		ProcessLoader<ItemSelectionProcess>::load);
+	_kernel->addProcessLoader("PaceProcess",
+		ProcessLoader<PaceProcess>::load);
+	_kernel->addProcessLoader("SuperSpriteProcess",
+		ProcessLoader<SuperSpriteProcess>::load);
+	_kernel->addProcessLoader("AttackProcess",
+		ProcessLoader<AttackProcess>::load);
 
 	_objectManager = new ObjectManager();
 	_mouse = new Mouse();
@@ -316,15 +330,17 @@ void Ultima8Engine::startup() {
 
 	if (setupGame(info)) {
 		GraphicSysInit();
-		startupGame();
+		if (!startupGame())
+			return false;
 	} else {
 		// Couldn't setup the game, should never happen?
 		CANT_HAPPEN_MSG("default game failed to initialize");
 	}
 	paint();
+	return true;
 }
 
-void Ultima8Engine::startupGame() {
+bool Ultima8Engine::startupGame() {
 	pout  << Std::endl << "-- Initializing Game: " << _gameInfo->_name << " --" << Std::endl;
 
 	GraphicSysInit();
@@ -365,7 +381,9 @@ void Ultima8Engine::startupGame() {
 	_settingMan->setDefault("cheat", false);
 	_settingMan->get("cheat", _cheatsEnabled);
 
-	_game->loadFiles();
+	bool loaded = _game->loadFiles();
+	if (!loaded)
+		return false;
 	_gameData->setupFontOverrides();
 
 	// Create Midi Driver for Ultima 8
@@ -379,6 +397,7 @@ void Ultima8Engine::startupGame() {
 	newGame(saveSlot);
 
 	pout << "-- Game Initialized --" << Std::endl << Std::endl;
+	return true;
 }
 
 void Ultima8Engine::shutdown() {
@@ -480,7 +499,7 @@ void Ultima8Engine::menuInitMinimal(istring gamename) {
 	pout << "-- Finished loading minimal--" << Std::endl << Std::endl;
 }
 
-void Ultima8Engine::runGame() {
+bool Ultima8Engine::runGame() {
 	_isRunning = true;
 
 	int32 next_ticks = g_system->getMillis() * 3;  // Next time is right now!
@@ -550,10 +569,12 @@ void Ultima8Engine::runGame() {
 
 				_changeGameName.clear();
 
-				if (setupGame(info))
-					startupGame();
-				else
+				if (setupGame(info)) {
+					if (!startupGame())
+						return false;
+				} else {
 					CANT_HAPPEN_MSG("Failed to start up game with valid info.");
+				}
 			} else {
 				perr << "Game '" << _changeGameName << "' not found" << Std::endl;
 				_changeGameName.clear();
@@ -569,6 +590,7 @@ void Ultima8Engine::runGame() {
 		// Do a delay
 		g_system->delayMillis(5);
 	}
+	return true;
 }
 
 // Paint the _screen
@@ -926,7 +948,7 @@ Common::Error Ultima8Engine::loadGameState(int slot) {
 }
 
 Common::Error Ultima8Engine::saveGameState(int slot, const Common::String &desc, bool isAutosave) {
-	Common::Error result = Shared::UltimaEngine::saveGameState(slot, desc, isAutosave);;
+	Common::Error result = Shared::UltimaEngine::saveGameState(slot, desc, isAutosave);
 
 	if (!isAutosave) {
 		if (result.getCode() == Common::kNoError)

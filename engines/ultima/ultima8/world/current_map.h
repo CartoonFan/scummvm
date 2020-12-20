@@ -170,7 +170,7 @@ public:
 		// Bitmask. Bit 0 is x, 1 is y, 2 is z.
 
 		// Use this func to get the interpolated location of the hit
-		void GetInterpolatedCoords(int32 out[3], int32 start[3], int32 end[3]) const {
+		void GetInterpolatedCoords(int32 out[3], const int32 start[3], const int32 end[3]) const {
 			for (int i = 0; i < 3; i++)
 				out[i] = start[i] + ((end[i] - start[i]) * (_hitTime >= 0 ? _hitTime : 0) + (end[i] > start[i] ? 0x2000 : -0x2000)) / 0x4000;
 		}
@@ -217,7 +217,7 @@ public:
 	INTRINSIC(I_canExistAtPoint);
 
 private:
-	void loadItems(Std::list<Item *> itemlist, bool callCacheIn);
+	void loadItems(const Std::list<Item *> &itemlist, bool callCacheIn);
 	void createEggHatcher();
 
 	//! clip the given map chunk numbers to iterate over them safely

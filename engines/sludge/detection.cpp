@@ -21,27 +21,11 @@
  */
 #include "common/debug.h"
 #include "common/stream.h"
+#include "common/file.h"
 
 #include "engines/advancedDetector.h"
 
-#include "sludge/sludge.h"
-
-namespace Sludge {
-
-struct SludgeGameDescription {
-	ADGameDescription desc;
-	uint languageID;
-};
-
-uint SludgeEngine::getLanguageID() const { return _gameDescription->languageID; }
-const char *SludgeEngine::getGameId() const { return _gameDescription->desc.gameId;}
-uint32 SludgeEngine::getFeatures() const { return _gameDescription->desc.flags; }
-Common::Language SludgeEngine::getLanguage() const { return _gameDescription->desc.language; }
-const char *SludgeEngine::getGameFile() const {
-	return _gameDescription->desc.filesDescriptions[0].fileName;
-}
-
-} // End of namespace Sludge
+#include "sludge/detection.h"
 
 static const PlainGameDescriptor sludgeGames[] = {
 	{ "sludge",			"Sludge Game" },
@@ -81,9 +65,9 @@ static Sludge::SludgeGameDescription s_fallbackDesc =
 
 static char s_fallbackFileNameBuffer[51];
 
-class SludgeMetaEngine : public AdvancedMetaEngine {
+class SludgeMetaEngineDetection : public AdvancedMetaEngineDetection {
 public:
-	SludgeMetaEngine() : AdvancedMetaEngine(Sludge::gameDescriptions, sizeof(Sludge::SludgeGameDescription), sludgeGames) {
+	SludgeMetaEngineDetection() : AdvancedMetaEngineDetection(Sludge::gameDescriptions, sizeof(Sludge::SludgeGameDescription), sludgeGames) {
 		_maxScanDepth = 1;
 	}
 
@@ -99,19 +83,11 @@ public:
 		return "Sludge (C) 2000-2014 Hungry Software and contributors";
 	}
 
-	bool createInstance(OSystem *syst, Engine **engine, const ADGameDescription *desc) const override {
-		const Sludge::SludgeGameDescription *gd = (const Sludge::SludgeGameDescription *)desc;
-			if (gd) {
-				*engine = new Sludge::SludgeEngine(syst, gd);
-			}
-			return gd != 0;
-	}
-
 	// for fall back detection
 	ADDetectedGame fallbackDetect(const FileMap &allFiles, const Common::FSList &fslist) const override;
 };
 
-ADDetectedGame SludgeMetaEngine::fallbackDetect(const FileMap &allFiles, const Common::FSList &fslist) const {
+ADDetectedGame SludgeMetaEngineDetection::fallbackDetect(const FileMap &allFiles, const Common::FSList &fslist) const {
 	// reset fallback description
 	s_fallbackDesc.desc.gameId = "sludge";
 	s_fallbackDesc.desc.extra = "";
@@ -170,8 +146,4 @@ ADDetectedGame SludgeMetaEngine::fallbackDetect(const FileMap &allFiles, const C
 	return ADDetectedGame();
 }
 
-#if PLUGIN_ENABLED_DYNAMIC(SLUDGE)
-	REGISTER_PLUGIN_DYNAMIC(SLUDGE, PLUGIN_TYPE_ENGINE, SludgeMetaEngine);
-#else
-	REGISTER_PLUGIN_STATIC(SLUDGE, PLUGIN_TYPE_ENGINE, SludgeMetaEngine);
-#endif
+REGISTER_PLUGIN_STATIC(SLUDGE_DETECTION, PLUGIN_TYPE_ENGINE_DETECTION, SludgeMetaEngineDetection);

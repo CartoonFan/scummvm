@@ -39,7 +39,7 @@
 
 namespace Kyra {
 
-#define RESFILE_VERSION 103
+#define RESFILE_VERSION 108
 
 namespace {
 bool checkKyraDat(Common::SeekableReadStream *file) {
@@ -94,6 +94,7 @@ const IndexTable iLanguageTable[] = {
 	{ Common::IT_ITA, 5 },
 	{ Common::JA_JPN, 6 },
 	{ Common::RU_RUS, 7 },
+	{ Common::HE_ISR, 8 },
 	{ -1, -1 }
 };
 
@@ -210,6 +211,7 @@ bool StaticResource::tryKyraDatLoad() {
 
 	if (!found)
 		return false;
+
 
 	// load the ID map for our game
 	const Common::String filenamePattern = Common::String::format("0%01X%01X%01X000%01X", game, platform, special, lang);
@@ -961,6 +963,10 @@ void KyraEngine_LoK::loadMainScreen(int page) {
 		_screen->loadBitmap("MAIN_SPA.CPS", page, page, 0);
 	else if (_flags.lang == Common::IT_ITA)
 		_screen->loadBitmap("MAIN_ITA.CPS", page, page, 0);
+	else if (_flags.lang == Common::RU_RUS)
+		_screen->loadBitmap("MAIN_ENG.CPS", page, page, 0);
+	else if (_flags.lang == Common::HE_ISR)
+		_screen->loadBitmap("MAIN_HEB.CPS", page, page, 0);
 	else
 		warning("no main graphics file found");
 

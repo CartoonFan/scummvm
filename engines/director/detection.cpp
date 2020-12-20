@@ -25,72 +25,8 @@
 #include "engines/advancedDetector.h"
 
 #include "common/file.h"
-#include "common/config-manager.h"
 
-#include "director/director.h"
-
-namespace Director {
-
-struct DirectorGameDescription {
-	ADGameDescription desc;
-
-	DirectorGameGID gameGID;
-	uint16 version;
-};
-
-DirectorGameGID DirectorEngine::getGameGID() const {
-	return _gameDescription->gameGID;
-}
-
-const char *DirectorEngine::getGameId() const {
-	return _gameDescription->desc.gameId;
-}
-
-Common::Platform DirectorEngine::getPlatform() const {
-	return _gameDescription->desc.platform;
-}
-
-uint16 DirectorEngine::getDescriptionVersion() const {
-	return _gameDescription->version;
-}
-
-Common::Language DirectorEngine::getLanguage() const {
-	return _gameDescription->desc.language;
-}
-
-const char *DirectorEngine::getExtra() {
-	return _gameDescription->desc.extra;
-}
-
-Common::String DirectorEngine::getEXEName() const {
-	StartMovie startMovie = getStartMovie();
-	if (startMovie.startMovie.size() > 0)
-		return startMovie.startMovie;
-
-	return _gameDescription->desc.filesDescriptions[0].fileName;
-}
-
-StartMovie DirectorEngine::getStartMovie() const {
-	StartMovie startMovie;
-	startMovie.startFrame = -1;
-
-	if (ConfMan.hasKey("start_movie")) {
-		Common::String option = ConfMan.get("start_movie");
-		int atPos = option.findLastOf("@");
-		startMovie.startMovie = option.substr(0, atPos);
-		Common::String tail = option.substr(atPos + 1, option.size());
-		if (tail.size() > 0)
-			startMovie.startFrame = atoi(tail.c_str());
-	}
-	return startMovie;
-}
-
-bool DirectorEngine::hasFeature(EngineFeature f) const {
-	return false;
-		//(f == kSupportsReturnToLauncher);
-}
-
-} // End of Namespace Director
+#include "director/detection.h"
 
 static const PlainGameDescriptor directorGames[] = {
 	{ "director",			"Macromedia Director Game" },
@@ -108,11 +44,13 @@ static const PlainGameDescriptor directorGames[] = {
 	{ "ankh3",				"Ankh 3"},
 	{ "arcofdoom",			"Arc of Doom"},
 	{ "artrageous",			"ArtRageous!"},
+	{ "asimovrat",			"Robotoid Assembly Toolkit"},
 	{ "ataripack",			"Activision's Atari 2600 Action Pack"},
 	{ "badday",				"Bad Day on the Midway"},
 	{ "beyondthewall",		"Beyond the Wall of Stars"},
 	{ "bookshelf94",		"Microsoft Bookshelf '94"},
 	{ "bowie",				"JUMP: The David Bowie Interactive CD-ROM"},
+	{ "bpmc",				"Byron Preiss Multimedia Catalog"},
 	{ "chaos",				"The C.H.A.O.S. Continuum"},
 	{ "chopsuey",   		"Chop Suey" },
 	{ "chuteng",   			"Chu-Teng" },
@@ -123,15 +61,18 @@ static const PlainGameDescriptor directorGames[] = {
 	{ "earthtia",			"Earthtia Saga: Larthur's Legend"},
 	{ "easternmind",		"Eastern Mind: The Lost Souls of Tong Nou"},
 	{ "earthwormjim",		"Earthworm Jim"},
+	{ "einstein",			"The Ultimate Einstein"},
 	{ "encarta94",			"Microsoft Encarta '94"},
 	{ "encarta95",			"Microsoft Encarta '95"},
 	{ "ernie",				"Ernie"},
+	{ "flw",				"The Ultimate Frank Lloyd Wright: America's Architect"},
 	{ "frankenstein",		"Frankenstein: Through the Eyes of the Monster"},
 	{ "freakshow",			"Freak Show"},
 	{ "gadget",				"Gadget: Invention, Travel, & Adventure"},
 	{ "gundam0079",			"Gundam 0079: The War for Earth" },
 	{ "hamsterland1",		"Busy People of Hamsterland" },
 	{ "hamsterland2",		"Hamsterland: The Time Machine" },
+	{ "hhouse",				"Gahan Wilson's The Ultimate Haunted House" },	
 	{ "horrortour1",		"Zeddas: Servant of Sheol"},
 	{ "horrortour2",		"Zeddas: Horror Tour 2"},
 	{ "horrortour3",		"Labyrinthe"},
@@ -153,7 +94,7 @@ static const PlainGameDescriptor directorGames[] = {
 	{ "jewels",				"Jewels of the Oracle" },
 	{ "jman",				"The Journeyman Project" },
 	{ "jman2",				"The Journeyman Project 2: Buried in Time" },
-	{ "jmmd",       "Just Me & My Dad" },
+	{ "jmmd",       		"Just Me & My Dad" },
 	{ "karma",				"Karma: Curse of the 12 Caves" },
 	{ "kyoto",				"Cosmology of Kyoto" },
 	{ "lion",				"Lion" },
@@ -187,8 +128,10 @@ static const PlainGameDescriptor directorGames[] = {
 	{ "refixion2",			"Refixion II: Museum or Hospital"},
 	{ "refixion3",			"Refixion III: The Reindeer Story"},
 	{ "rodney",				"Rodney's Funscreen"},
+	{ "saillusion",     	"Scientific American Library: Illusion" },
 	{ "sakin2",				"Sakin II"},
 	{ "santafe1",			"Santa Fe Mysteries: The Elk Moon Murder"},
+	{ "sauniverse",     	"Scientific American Library: The Universe" },
 	{ "sciencesmart",		"Science Smart"},
 	{ "screamingmetal",		"Screaming Metal"},
 	{ "shanghai",			"Shanghai: Great Moments"},
@@ -214,6 +157,7 @@ static const PlainGameDescriptor directorGames[] = {
 	{ "twistynight1",		"Twisty Night #1"},
 	{ "twistynight2",		"Twisty Night #2"},
 	{ "twistynight3",		"Twisty Night #3"},
+	{ "ushistory",			"The History of the United States for Young People"},
 	{ "vvcyber",			"Victor Vector & Yondo: The Cyberplasm Formula"},
 	{ "vvdinosaur",			"Victor Vector & Yondo: The Last Dinosaur Egg"},
 	{ "vvharp",				"Victor Vector & Yondo: The Hypnotic Harp"},
@@ -222,6 +166,7 @@ static const PlainGameDescriptor directorGames[] = {
 	{ "wishbone", 			"Wishbone and the Amazing Odyssey"},
 	{ "wrath",				"Wrath of the Gods"},
 	{ "xanthus",			"Xanthus"},
+	{ "xfua",				"The X-Files Unrestricted Access"},
 	{ "ybr1",				"Yellow Brick Road"},
 	{ "ybr2",				"Yellow Brick Road II"},
 	{ "ybr3",				"Yellow Brick Road III"},
@@ -238,9 +183,9 @@ static const char *directoryGlobs[] = {
 	0
 };
 
-class DirectorMetaEngine : public AdvancedMetaEngine {
+class DirectorMetaEngineDetection : public AdvancedMetaEngineDetection {
 public:
-	DirectorMetaEngine() : AdvancedMetaEngine(Director::gameDescriptions, sizeof(Director::DirectorGameDescription), directorGames) {
+	DirectorMetaEngineDetection() : AdvancedMetaEngineDetection(Director::gameDescriptions, sizeof(Director::DirectorGameDescription), directorGames) {
 		_maxScanDepth = 2;
 		_directoryGlobs = directoryGlobs;
 	}
@@ -258,17 +203,7 @@ public:
 	}
 
 	ADDetectedGame fallbackDetect(const FileMap &allFiles, const Common::FSList &fslist) const override;
-	bool createInstance(OSystem *syst, Engine **engine, const ADGameDescription *desc) const override;
 };
-
-bool DirectorMetaEngine::createInstance(OSystem *syst, Engine **engine, const ADGameDescription *desc) const {
-	const Director::DirectorGameDescription *gd = (const Director::DirectorGameDescription *)desc;
-
-	if (gd)
-		*engine = new Director::DirectorEngine(syst, gd);
-
-	return (gd != 0);
-}
 
 static Director::DirectorGameDescription s_fallbackDesc = {
 	{
@@ -287,7 +222,7 @@ static Director::DirectorGameDescription s_fallbackDesc = {
 static char s_fallbackFileNameBuffer[51];
 static char s_fallbackExtraBuf[256];
 
-ADDetectedGame DirectorMetaEngine::fallbackDetect(const FileMap &allFiles, const Common::FSList &fslist) const {
+ADDetectedGame DirectorMetaEngineDetection::fallbackDetect(const FileMap &allFiles, const Common::FSList &fslist) const {
 	// TODO: Handle Mac fallback
 
 	// reset fallback description
@@ -395,8 +330,4 @@ ADDetectedGame DirectorMetaEngine::fallbackDetect(const FileMap &allFiles, const
 	return ADDetectedGame();
 }
 
-#if PLUGIN_ENABLED_DYNAMIC(DIRECTOR)
-	REGISTER_PLUGIN_DYNAMIC(DIRECTOR, PLUGIN_TYPE_ENGINE, DirectorMetaEngine);
-#else
-	REGISTER_PLUGIN_STATIC(DIRECTOR, PLUGIN_TYPE_ENGINE, DirectorMetaEngine);
-#endif
+REGISTER_PLUGIN_STATIC(DIRECTOR_DETECTION, PLUGIN_TYPE_ENGINE_DETECTION, DirectorMetaEngineDetection);

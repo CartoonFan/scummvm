@@ -173,4 +173,19 @@ const char *gScummVMFeatures = ""
 	"SDL_net "
 #endif
 #endif
+#ifdef USE_TINYGL
+	"TinyGL "
+#endif
+#ifdef USE_OPENGL
+	"OpenGL "
+#ifdef USE_OPENGL_SHADERS
+	"(with shaders) "
+#endif
+#endif
+#ifdef USE_GLES2
+	"OpenGL ES 2 "
+#endif
+#ifdef USE_GLEW
+	"GLEW "
+#endif
 	;

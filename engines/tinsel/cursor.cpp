@@ -55,6 +55,9 @@ Cursor::Cursor() {
 	_mainCursor = nullptr;
 	_auxCursor = nullptr;
 
+	_mainCursorAnim = {0, 0, 0, 0, 0};
+	_auxCursorAnim = {0, 0, 0, 0, 0};
+
 	_hiddenCursor = false;
 	_hiddenTrails = false;
 	_tempHiddenCursor = false;
@@ -207,7 +210,7 @@ void Cursor::RestoreMainCursor() {
 	const FILM *pfilm;
 
 	if (_mainCursor != NULL) {
-		pfilm = (const FILM *)LockMem(_cursorFilm);
+		pfilm = (const FILM *)_vm->_handle->LockMem(_cursorFilm);
 
 		InitStepAnimScript(&_mainCursorAnim, _mainCursor, FROM_32(pfilm->reels->script), ONE_SECOND / FROM_32(pfilm->frate));
 		StepAnimScript(&_mainCursorAnim);
@@ -306,14 +309,14 @@ IMAGE *Cursor::GetImageFromReel(const FREEL *pfr, const MULTI_INIT **ppmi) {
 	const MULTI_INIT *pmi;
 	const FRAME *pFrame;
 
-	pmi = (const MULTI_INIT *)LockMem(FROM_32(pfr->mobj));
+	pmi = (const MULTI_INIT *)_vm->_handle->LockMem(FROM_32(pfr->mobj));
 	if (ppmi)
 		*ppmi = pmi;
 
-	pFrame = (const FRAME *)LockMem(FROM_32(pmi->hMulFrame));
+	pFrame = (const FRAME *)_vm->_handle->LockMem(FROM_32(pmi->hMulFrame));
 
 	// get pointer to image
-	return (IMAGE *)LockMem(READ_32(pFrame));
+	return (IMAGE *)_vm->_handle->LockMem(READ_32(pFrame));
 }
 
 /**
@@ -323,7 +326,7 @@ IMAGE *Cursor::GetImageFromFilm(SCNHANDLE hFilm, int reel, const FREEL **ppfr, c
 	const FILM *pfilm;
 	const FREEL *pfr;
 
-	pfilm = (const FILM *)LockMem(hFilm);
+	pfilm = (const FILM *)_vm->_handle->LockMem(hFilm);
 	if (ppfilm)
 		*ppfilm = pfilm;
 
@@ -445,10 +448,10 @@ void Cursor::DoCursorMove() {
 	if (_auxCursor != NULL)
 		MultiSetAniXY(_auxCursor, ptMouse.x - _auxCursorOffsetX, ptMouse.y - _auxCursorOffsetY);
 
-	if (InventoryActive() && _mainCursor) {
+	if (_vm->_dialogs->InventoryActive() && _mainCursor) {
 		// Notify the inventory
-		Xmovement(ptMouse.x - startX);
-		Ymovement(ptMouse.y - startY);
+		_vm->_dialogs->Xmovement(ptMouse.x - startX);
+		_vm->_dialogs->Ymovement(ptMouse.y - startY);
 	}
 
 	_lastCursorX = ptMouse.x;
@@ -465,9 +468,9 @@ void Cursor::InitCurObj() {
 	IMAGE *pim;
 
 	if (TinselV2) {
-		pFilm = (const FILM *)LockMem(_cursorFilm);
+		pFilm = (const FILM *)_vm->_handle->LockMem(_cursorFilm);
 		pfr = (const FREEL *)&pFilm->reels[0];
-		pmi = (MULTI_INIT *)LockMem(FROM_32(pfr->mobj));
+		pmi = (MULTI_INIT *)_vm->_handle->LockMem(FROM_32(pfr->mobj));
 
 		PokeInPalette(pmi);
 	} else {
@@ -509,7 +512,7 @@ void Cursor::DwInitCursor(SCNHANDLE bfilm) {
 
 	_cursorFilm = bfilm;
 
-	pfilm = (const FILM *)LockMem(_cursorFilm);
+	pfilm = (const FILM *)_vm->_handle->LockMem(_cursorFilm);
 	_numTrails = FROM_32(pfilm->numreels) - 1;
 
 	assert(_numTrails <= MAX_TRAILERS);
@@ -574,7 +577,7 @@ void Cursor::StartCursorFollowed() {
 }
 
 void Cursor::EndCursorFollowed() {
-	InventoryIconCursor(false);	// May be holding something
+	_vm->_dialogs->InventoryIconCursor(false); // May be holding something
 	_tempHiddenCursor = false;
 }
 
@@ -620,7 +623,7 @@ void CursorStoppedCheck(CORO_PARAM) {
 		// Re-initialize
 		_vm->_cursor->InitCurObj();
 		_vm->_cursor->InitCurPos();
-		InventoryIconCursor(false); // May be holding something
+		_vm->_dialogs->InventoryIconCursor(false); // May be holding something
 
 		// Re-start the cursor trails
 		_vm->_cursor->_cursorProcessesRestarted = true;
@@ -644,7 +647,7 @@ void CursorProcess(CORO_PARAM, const void *) {
 
 	_vm->_cursor->InitCurObj();
 	_vm->_cursor->InitCurPos();
-	InventoryIconCursor(false); // May be holding something
+	_vm->_dialogs->InventoryIconCursor(false); // May be holding something
 
 	_vm->_cursor->_cursorProcessesStopped = false;
 	_vm->_cursor->_cursorProcessesRestarted = false;

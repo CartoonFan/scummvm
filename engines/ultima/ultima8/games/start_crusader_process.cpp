@@ -25,8 +25,6 @@
 #include "ultima/ultima8/games/start_crusader_process.h"
 #include "ultima/ultima8/games/game.h"
 #include "ultima/ultima8/games/remorse_game.h"
-#include "ultima/ultima8/world/loop_script.h"
-#include "ultima/ultima8/usecode/uc_list.h"
 #include "ultima/ultima8/world/current_map.h"
 #include "ultima/ultima8/world/egg.h"
 #include "ultima/ultima8/world/camera_process.h"
@@ -102,13 +100,6 @@ void StartCrusaderProcess::run() {
 			Item *smiley = ItemFactory::createItem(0x598, 0, 0, 0, 0, mapnum, 0, true);
 			smiley->moveToContainer(avatar);
 
-			// TODO: How is this created in the game??
-			Egg *miss1egg = new Egg();
-			miss1egg->setShape(2317);
-			miss1egg->setMapNum(mapnum);
-			miss1egg->assignObjId();
-			miss1egg->callUsecodeEvent_hatch();
-
 			avatar->setDir(dir_east);
 		} else if (GAME_IS_REGRET) {
 			// TODO: Give the appropriate startup objects to the avatar
@@ -122,10 +113,7 @@ void StartCrusaderProcess::run() {
 		Kernel::get_instance()->addProcess(fader);
 	}
 
-	MusicProcess::get_instance()->playMusic(1);
-
 	Ultima8Engine::get_instance()->setAvatarInStasis(false);
-
 
 	terminate();
 }

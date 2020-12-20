@@ -395,6 +395,15 @@ void initGraphics(int width, int height) {
 	initGraphics(width, height, &format);
 }
 
+void initGraphics3d(int width, int height) {
+	g_system->beginGFXTransaction();
+		g_system->setGraphicsMode(0, OSystem::kGfxModeRender3d);
+		g_system->initSize(width, height);
+		g_system->setFeatureState(OSystem::kFeatureFullscreenMode, ConfMan.getBool("fullscreen")); // TODO: Replace this with initCommonGFX()
+		g_system->setFeatureState(OSystem::kFeatureAspectRatioCorrection, ConfMan.getBool("aspect_ratio")); // TODO: Replace this with initCommonGFX()
+	g_system->endGFXTransaction();
+}
+
 void GUIErrorMessageWithURL(const Common::U32String &msg, const char *url) {
 	GUIErrorMessage(msg, url);
 }
@@ -408,7 +417,7 @@ void GUIErrorMessage(const Common::String &msg, const char *url) {
 }
 
 void GUIErrorMessage(const Common::U32String &msg, const char *url) {
-	g_system->setWindowCaption("Error");
+	g_system->setWindowCaption(_("Error"));
 	g_system->beginGFXTransaction();
 		initCommonGFX();
 		g_system->initSize(320, 200);
@@ -630,6 +639,7 @@ void Engine::openMainMenuDialog() {
 		ttsMan->popState();
 #endif
 
+	g_system->applyBackendSettings();
 	applyGameSettings();
 	syncSoundSettings();
 }
@@ -643,6 +653,13 @@ bool Engine::warnUserAboutUnsupportedGame() {
 		return alert.runModal() == GUI::kMessageOK;
 	}
 	return true;
+}
+
+void Engine::errorUnsupportedGame(Common::String extraMsg) {
+	Common::String message = extraMsg.empty() ? _("This game is not supported.") : _("This game is not supported for the following reason:\n\n");
+	message += _(extraMsg);
+	message += "\n\n";
+	GUI::MessageDialog(message).runModal();
 }
 
 uint32 Engine::getTotalPlayTime() const {
@@ -865,10 +882,20 @@ EnginePlugin *Engine::getMetaEnginePlugin() const {
 
 */
 
-MetaEngine &Engine::getMetaEngine() {
+MetaEngineDetection &Engine::getMetaEngineDetection() {
 	const Plugin *plugin = EngineMan.findPlugin(ConfMan.get("engineid"));
 	assert(plugin);
-	return plugin->get<MetaEngine>();
+	return plugin->get<MetaEngineDetection>();
+}
+
+MetaEngine &Engine::getMetaEngine() {
+	const Plugin *metaEnginePlugin = EngineMan.findPlugin(ConfMan.get("engineid"));
+	assert(metaEnginePlugin);
+
+	const Plugin *enginePlugin = PluginMan.getEngineFromMetaEngine(metaEnginePlugin);
+	assert(enginePlugin);
+
+	return enginePlugin->get<MetaEngine>();
 }
 
 PauseToken::PauseToken() : _engine(nullptr) {}

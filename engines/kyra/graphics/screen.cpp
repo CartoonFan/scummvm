@@ -1408,6 +1408,13 @@ int Screen::getTextWidth(const char *str, bool nextWordOnly) {
 	return MAX(curLineLen, maxLineLen);
 }
 
+int Screen::getNumberOfCharacters(const char *str) {
+	int res = 0;
+	while (fetchChar(str))
+		++res;
+	return res;
+}
+
 void Screen::printText(const char *str, int x, int y, uint8 color1, uint8 color2, int pitch) {
 	uint16 cmap16[2];
 	if (_16bitPalette) {
@@ -3879,7 +3886,7 @@ void Palette::loadEGAPalette(Common::ReadStream &stream, int startIndex, int col
 void Palette::setCGAPalette(int palIndex, CGAIntensity intensity) {
 	assert(_numColors >= _cgaNumColors);
 	assert(!(palIndex & ~1));
-	memcpy(_palData, _cgaColors[palIndex * 2 + intensity], _numColors * 3);
+	memcpy(_palData, _cgaColors[palIndex * 2 + intensity], _cgaNumColors * 3);
 }
 
 void Palette::loadAmigaPalette(Common::ReadStream &stream, int startIndex, int colors) {

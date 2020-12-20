@@ -195,10 +195,10 @@ bool FileSystem::AddVirtualPath(const string &vpath, const string &realpath, con
 	string vp = vpath, rp = realpath;
 
 	// remove trailing slash
-	if (vp.rfind('/') == vp.size() - 1)
+	if (vp.size() && vp.rfind('/') == vp.size() - 1)
 		vp.erase(vp.rfind('/'));
 
-	if (rp.rfind('/') == rp.size() - 1)
+	if (rp.size() && rp.rfind('/') == rp.size() - 1)
 		rp.erase(rp.rfind('/'));
 
 	if (rp.find("..") != string::npos) {
@@ -220,7 +220,7 @@ bool FileSystem::AddVirtualPath(const string &vpath, const string &realpath, con
 #ifdef DEBUG
 	debugN(MM_INFO, "virtual path \"%s\": %s\n", vp.c_str(), fullpath.c_str());
 #endif
-	if (!(fullpath.substr(0, 8) == "@memory/")) {
+	if (!(fullpath.substr(0, 8) == "@memory/") && rp.length()) {
 		if (!IsDir(fullpath)) {
 			if (!create) {
 #ifdef DEBUG
@@ -242,7 +242,7 @@ bool FileSystem::RemoveVirtualPath(const string &vpath) {
 	string vp = vpath;
 
 	// remove trailing slash
-	if (vp.rfind('/') == vp.size() - 1)
+	if (vp.size() && vp.rfind('/') == vp.size() - 1)
 		vp.erase(vp.rfind('/'));
 
 	Std::map<Common::String, string>::iterator i = _virtualPaths.find(vp);
@@ -271,7 +271,7 @@ bool FileSystem::rewrite_virtual_path(string &vfn) const {
 	string::size_type pos = vfn.size();
 
 	while ((pos = vfn.rfind('/', pos)) != Std::string::npos) {
-//		perr << vfn << ", " << vfn.substr(0, pos) << ", " << pos << Std::endl;
+//		perr << vfn << ", '" << vfn.substr(0, pos) << "', " << pos << Std::endl;
 		Std::map<Common::String, string>::const_iterator p = _virtualPaths.find(
 		            vfn.substr(0, pos));
 

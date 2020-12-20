@@ -12,6 +12,7 @@ MODULE_OBJS := \
 	fonts/newfont.o \
 	fonts/ttf.o \
 	fonts/winfont.o \
+	korfont.o \
 	larryScale.o \
 	maccursor.o \
 	macgui/datafiles.o \
@@ -28,6 +29,7 @@ MODULE_OBJS := \
 	nine_patch.o \
 	pixelformat.o \
 	primitives.o \
+	renderer.o \
 	scaler.o \
 	scaler/thumbnail_intern.o \
 	screen.o \
@@ -40,7 +42,44 @@ MODULE_OBJS := \
 	VectorRenderer.o \
 	VectorRendererSpec.o \
 	wincursor.o \
-	yuv_to_rgb.o
+	yuv_to_rgb.o \
+	pixelbuffer.o \
+	opengl/context.o \
+	opengl/framebuffer.o \
+	opengl/texture.o \
+	opengl/tiledsurface.o \
+	opengl/shader.o \
+	opengl/surfacerenderer.o \
+	opengl/box_shaders.o \
+	opengl/control_shaders.o \
+	opengl/compat_shaders.o
+
+ifdef USE_TINYGL
+MODULE_OBJS += \
+	tinygl/api.o \
+	tinygl/arrays.o \
+	tinygl/clear.o \
+	tinygl/clip.o \
+	tinygl/get.o \
+	tinygl/image_util.o \
+	tinygl/init.o \
+	tinygl/light.o \
+	tinygl/list.o \
+	tinygl/matrix.o \
+	tinygl/memory.o \
+	tinygl/misc.o \
+	tinygl/select.o \
+	tinygl/specbuf.o \
+	tinygl/texture.o \
+	tinygl/texelbuffer.o \
+	tinygl/vertex.o \
+	tinygl/zbuffer.o \
+	tinygl/zline.o \
+	tinygl/zmath.o \
+	tinygl/ztriangle.o \
+	tinygl/zblit.o \
+	tinygl/zdirtyrect.o
+endif
 
 ifdef USE_SCALERS
 MODULE_OBJS += \

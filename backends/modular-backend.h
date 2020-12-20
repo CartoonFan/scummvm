@@ -66,7 +66,7 @@ public:
 	GraphicsManager *getGraphicsManager();
 	virtual const GraphicsMode *getSupportedGraphicsModes() const override;
 	virtual int getDefaultGraphicsMode() const override;
-	virtual bool setGraphicsMode(int mode) override;
+	virtual bool setGraphicsMode(int mode, uint flags = kGfxModeNoFlags) override;
 	virtual int getGraphicsMode() const override;
 	virtual const GraphicsMode *getSupportedShaders() const override final;
 	virtual int getDefaultShader() const override final;
@@ -76,7 +76,6 @@ public:
 	virtual int getDefaultStretchMode() const override final;
 	virtual bool setStretchMode(int mode) override final;
 	virtual int getStretchMode() const override final;
-	virtual void resetGraphicsScale() override final;
 #ifdef USE_RGB_COLOR
 	virtual Graphics::PixelFormat getScreenFormat() const override final;
 	virtual Common::List<Graphics::PixelFormat> getSupportedFormats() const override final;
@@ -114,6 +113,7 @@ public:
 	virtual void warpMouse(int x, int y) override final;
 	virtual void setMouseCursor(const void *buf, uint w, uint h, int hotspotX, int hotspotY, uint32 keycolor, bool dontScale = false, const Graphics::PixelFormat *format = NULL) override final;
 	virtual void setCursorPalette(const byte *colors, uint start, uint num) override final;
+	virtual bool lockMouse(bool lock) override final;
 
 	//@}
 
@@ -122,6 +122,8 @@ public:
 
 	virtual void displayMessageOnOSD(const Common::U32String &msg) override final;
 	virtual void displayActivityIconOnOSD(const Graphics::Surface *icon) override final;
+
+	virtual void saveScreenshot() override final;
 
 	//@}
 

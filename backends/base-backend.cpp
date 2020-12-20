@@ -22,6 +22,8 @@
 
 #include "backends/base-backend.h"
 
+#include "graphics/pixelbuffer.h"
+
 #ifndef DISABLE_DEFAULT_EVENT_MANAGER
 #include "backends/events/default/default-events.h"
 #endif

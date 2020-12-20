@@ -60,7 +60,7 @@ GlkAPI::GlkAPI(OSystem *syst, const GlkGameDescription &gameDesc) :
 }
 
 void GlkAPI::glk_exit(void) {
-	glk_put_string_uni(_("[ press any key to exit ]").c_str());
+	glk_put_string_uni(_("[ press any key to exit ]").u32_str());
 	_events->waitForPress();
 
 	// Trigger a ScumMVM shutdown of game
@@ -1015,7 +1015,8 @@ void GlkAPI::glk_window_fill_rect(winid_t win, uint color, int left, int top,
 	if (!win) {
 		warning("window_fill_rect: invalid ref");
 	} else {
-		win->eraseRect(color, Rect(left, top, left + width, top + height));
+		uint c = _conf->parseColor(color);
+		win->fillRect(c, Rect(left, top, left + width, top + height));
 	}
 }
 
@@ -1023,7 +1024,8 @@ void GlkAPI::glk_window_set_background_color(winid_t win, uint color) {
 	if (!win) {
 		warning("window_set_background_color: invalid ref");
 	} else {
-		win->setBackgroundColor(color);
+		uint c = _conf->parseColor(color);
+		win->setBackgroundColor(c);
 	}
 }
 

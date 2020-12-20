@@ -35,9 +35,9 @@
 #include "engines/wintermute/ad/ad_game.h"
 #include "engines/wintermute/wintermute.h"
 #include "engines/wintermute/debugger.h"
-#include "engines/wintermute/game_description.h"
 #include "engines/wintermute/platform_osystem.h"
 #include "engines/wintermute/base/base_engine.h"
+#include "engines/wintermute/detection.h"
 
 #include "engines/wintermute/base/sound/base_sound_manager.h"
 #include "engines/wintermute/base/base_file_manager.h"
@@ -102,6 +102,10 @@ bool WintermuteEngine::hasFeature(EngineFeature f) const {
 		return true;
 	case kSupportsSavingDuringRuntime:
 		return true;
+#ifdef ENABLE_WME3D
+	case kSupportsArbitraryResolutions:
+		return true;
+#endif
 	default:
 		return false;
 	}
@@ -160,6 +164,12 @@ int WintermuteEngine::init() {
 		}
 	}
 
+	#ifdef ENABLE_WME3D
+	if (instance.getFlags() & GF_3D) {
+		instance.getClassRegistry()->register3DClasses();
+	}
+	#endif
+
 	// check dependencies for games with high resolution assets
 	#if !defined(USE_PNG) || !defined(USE_JPEG) || !defined(USE_VORBIS)
 		if (!(instance.getFlags() & GF_LOWSPEC_ASSETS)) {
@@ -193,6 +203,7 @@ int WintermuteEngine::init() {
 		}
 	#endif
 
+	#ifndef ENABLE_WME3D
 	// check if game require 3D capabilities
 	if (instance.getFlags() & GF_3D) {
 		GUI::MessageDialog dialog(_("This game requires 3D capabilities that are out ScummVM scope. As such, it"
@@ -203,11 +214,17 @@ int WintermuteEngine::init() {
 			return false;
 		}
 	}
+	#endif
 
 	_game = new AdGame(_targetName);
 	if (!_game) {
 		return 1;
 	}
+
+	#ifdef ENABLE_WME3D
+	Common::ArchiveMemberList actors3d;
+	_game->_playing3DGame = BaseEngine::instance().getFileManager()->listMatchingPackageMembers(actors3d, "*.act3d");
+	#endif
 	instance.setGameRef(_game);
 	BasePlatform::initialize(this, _game, 0, nullptr);
 
@@ -228,7 +245,13 @@ int WintermuteEngine::init() {
 		return 2;
 	}
 
-	_game->initialize2();
+	if (!_game->initialize2()) {
+		_game->LOG(0, "Error initializing renderer. Exiting.");
+
+		delete _game;
+		_game = nullptr;
+		return 3;
+	}
 
 	bool ret = _game->initRenderer();
 

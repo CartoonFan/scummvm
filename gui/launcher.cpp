@@ -184,11 +184,11 @@ void LauncherDialog::build() {
 #endif
 		_searchDesc = new StaticTextWidget(this, "Launcher.SearchDesc", _("Search:"));
 
-	_searchWidget = new EditTextWidget(this, "Launcher.Search", _search, Common::U32String(""), kSearchCmd);
+	_searchWidget = new EditTextWidget(this, "Launcher.Search", _search, Common::U32String(), kSearchCmd);
 	_searchClearButton = addClearButton(this, "Launcher.SearchClearButton", kSearchClearCmd);
 
 	// Add list with game titles
-	_list = new ListWidget(this, "Launcher.GameList", Common::U32String(""), kListSearchCmd);
+	_list = new ListWidget(this, "Launcher.GameList", Common::U32String(), kListSearchCmd);
 	_list->setEditable(false);
 	_list->enableDictionarySelect(true);
 	_list->setNumberingMode(kListNumberingOff);
@@ -253,17 +253,36 @@ void LauncherDialog::close() {
 	ConfMan.flushToDisk();
 	Dialog::close();
 }
+struct LauncherEntry {
+	Common::String key;
+	Common::String description;
+	const Common::ConfigManager::Domain *domain;
+
+	LauncherEntry(Common::String k, Common::String d, const Common::ConfigManager::Domain *v) {
+		key = k; description = d, domain = v;
+	}
+};
+
+struct LauncherEntryComparator {
+	bool operator()(const LauncherEntry &x, const LauncherEntry &y) const {
+			return scumm_compareDictionary(x.description.c_str(), y.description.c_str()) < 0;
+	}
+};
 
 void LauncherDialog::updateListing() {
 	U32StringArray l;
 	ListWidget::ColorList colors;
 	ThemeEngine::FontColor color;
+	int numEntries = ConfMan.getInt("gui_list_max_scan_entries");
 
 	// Retrieve a list of all games defined in the config file
 	_domains.clear();
 	const ConfigManager::DomainMap &domains = ConfMan.getGameDomains();
-	ConfigManager::DomainMap::const_iterator iter;
-	for (iter = domains.begin(); iter != domains.end(); ++iter) {
+	bool scanEntries = numEntries == -1 ? true : (domains.size() <= numEntries);
+
+	// Turn it into a list of pointers
+	Common::List<LauncherEntry> domainList;
+	for (ConfigManager::DomainMap::const_iterator iter = domains.begin(); iter != domains.end(); ++iter) {
 #ifdef __DS__
 		// DS port uses an extra section called 'ds'.  This prevents the section from being
 		// detected as a game.
@@ -272,12 +291,7 @@ void LauncherDialog::updateListing() {
 		}
 #endif
 
-		String gameid(iter->_value.getVal("gameid"));
 		String description(iter->_value.getVal("description"));
-		Common::FSNode path(iter->_value.getVal("path"));
-
-		if (gameid.empty())
-			gameid = iter->_key;
 
 		if (description.empty()) {
 			QualifiedGameDescriptor g = EngineMan.findTarget(iter->_key);
@@ -286,17 +300,27 @@ void LauncherDialog::updateListing() {
 		}
 
 		if (description.empty()) {
+			String gameid(iter->_value.getVal("gameid"));
+
+			if (gameid.empty())
+				gameid = iter->_key;
+
 			description = Common::String::format("Unknown (target %s, gameid %s)", iter->_key.c_str(), gameid.c_str());
 		}
 
-		if (!gameid.empty() && !description.empty()) {
-			// Insert the game into the launcher list
-			int pos = 0, size = l.size();
+		if (!description.empty())
+			domainList.push_back(LauncherEntry(iter->_key, description, &iter->_value));
+	}
 
-			while (pos < size && (scumm_compareDictionary(description.c_str(), l[pos].encode().c_str()) > 0))
-				pos++;
+	// Now sort the list in dictionary order
+	Common::sort(domainList.begin(), domainList.end(), LauncherEntryComparator());
 
-			color = ThemeEngine::kFontColorNormal;
+	// And fill out our structures
+	for (Common::List<LauncherEntry>::const_iterator iter = domainList.begin(); iter != domainList.end(); ++iter) {
+		color = ThemeEngine::kFontColorNormal;
+
+		if (scanEntries) {
+			Common::FSNode path(iter->domain->getVal("path"));
 			if (!path.isDirectory()) {
 				color = ThemeEngine::kFontColorAlternate;
 				// If more conditions which grey out entries are added we should consider
@@ -305,11 +329,11 @@ void LauncherDialog::updateListing() {
 
 				// description += Common::String::format(" (%s)", _("Not found"));
 			}
-
-			l.insert_at(pos, description);
-			colors.insert_at(pos, color);
-			_domains.insert_at(pos, iter->_key);
 		}
+
+		l.push_back(iter->description);
+		colors.push_back(color);
+		_domains.push_back(iter->key);
 	}
 
 	const int oldSel = _list->getSelected();
@@ -469,14 +493,20 @@ void LauncherDialog::loadGame(int item) {
 	EngineMan.upgradeTargetIfNecessary(target);
 
 	// Look for the plugin
-	const Plugin *plugin = nullptr;
-	EngineMan.findTarget(target, &plugin);
+	const Plugin *metaEnginePlugin = nullptr;
+	const Plugin *enginePlugin = nullptr;
+	EngineMan.findTarget(target, &metaEnginePlugin);
 
-	if (plugin) {
-		const MetaEngine &metaEngine = plugin->get<MetaEngine>();
-		if (metaEngine.hasFeature(MetaEngine::kSupportsListSaves) &&
-			metaEngine.hasFeature(MetaEngine::kSupportsLoadingDuringStartup)) {
-			int slot = _loadDialog->runModalWithPluginAndTarget(plugin, target);
+	// If we found a relevant plugin, find the matching engine plugin.
+	if (metaEnginePlugin) {
+		enginePlugin = PluginMan.getEngineFromMetaEngine(metaEnginePlugin);
+	}
+
+	if (enginePlugin) {
+		const MetaEngine &metaEngineConnect = enginePlugin->get<MetaEngine>();
+		if (metaEngineConnect.hasFeature(MetaEngine::kSupportsListSaves) &&
+			metaEngineConnect.hasFeature(MetaEngine::kSupportsLoadingDuringStartup)) {
+			int slot = _loadDialog->runModalWithPluginAndTarget(enginePlugin, target);
 			if (slot >= 0) {
 				ConfMan.setActiveDomain(_domains[item]);
 				ConfMan.setInt("save_slot", slot, Common::ConfigManager::kTransientDomain);
@@ -677,8 +707,8 @@ void LauncherDialog::handleCommand(CommandSender *sender, uint32 cmd, uint32 dat
 		break;
 	case kSearchClearCmd:
 		// Reset the active search filter, thus showing all games again
-		_searchWidget->setEditString(Common::U32String(""));
-		_list->setFilter(Common::U32String(""));
+		_searchWidget->setEditString(Common::U32String());
+		_list->setFilter(Common::U32String());
 		break;
 	default:
 		Dialog::handleCommand(sender, cmd, data);

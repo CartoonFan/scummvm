@@ -27,22 +27,7 @@
 #include "common/system.h"
 #include "common/textconsole.h"
 
-#include "parallaction/parallaction.h"
-
-namespace Parallaction {
-
-struct PARALLACTIONGameDescription {
-	ADGameDescription desc;
-
-	int gameType;
-	uint32 features;
-};
-
-int Parallaction::getGameType() const { return _gameDescription->gameType; }
-uint32 Parallaction::getFeatures() const { return _gameDescription->features; }
-Common::Language Parallaction::getLanguage() const { return _gameDescription->desc.language; }
-Common::Platform Parallaction::getPlatform() const { return _gameDescription->desc.platform; }
-}
+#include "parallaction/detection.h"
 
 static const PlainGameDescriptor parallactionGames[] = {
 	{"nippon", "Nippon Safes Inc."},
@@ -105,11 +90,8 @@ static const PARALLACTIONGameDescription gameDescriptions[] = {
 		{
 			"nippon",
 			"Demo",
-			{
-				{ "disk0",	0, "6fed2e18a6bfe5e8bb49144fcc95fd11", 624640},
-				{ "fr",		0, "72f04be4320dfac719431419ec2b9a0d", 12778},
-				AD_LISTEND
-			},
+			AD_ENTRY2s("disk0",	"6fed2e18a6bfe5e8bb49144fcc95fd11", 624640,
+					   "fr",	"72f04be4320dfac719431419ec2b9a0d", 12778),
 			Common::EN_ANY,
 			Common::kPlatformAmiga,
 			ADGF_DEMO,
@@ -146,14 +128,11 @@ static const PARALLACTIONGameDescription gameDescriptions[] = {
 		{
 			"bra",
 			"Multi-lingual",
-			{
-				{ "tbra.bmp",	0, "3174c095a0e1a4eaf05c403445711e9b", 80972 },
-				{ "russia.fnt",	0, "57f85ff62aeca6334fdcaf718e313b49", 18344 },
-				AD_LISTEND
-			},
+			AD_ENTRY2s("tbra.bmp",	 "3174c095a0e1a4eaf05c403445711e9b", 80972,
+					   "russia.fnt", "57f85ff62aeca6334fdcaf718e313b49", 18344),
 			Common::UNK_LANG,
 			Common::kPlatformDOS,
-			ADGF_NO_FLAGS,
+			ADGF_UNSTABLE,
 			GUIO1(GUIO_NOSPEECH)
 		},
 		GType_BRA,
@@ -164,13 +143,10 @@ static const PARALLACTIONGameDescription gameDescriptions[] = {
 		{
 			"bra",
 			"Demo",
-			{
-				{ "russia.fnt",	0, "0dd55251d2886d6783718df2b184bf97", 10649 },
-				AD_LISTEND
-			},
+			AD_ENTRY1s("russia.fnt", "0dd55251d2886d6783718df2b184bf97", 10649),
 			Common::UNK_LANG,
 			Common::kPlatformDOS,
-			ADGF_DEMO,
+			ADGF_DEMO | ADGF_UNSTABLE,
 			GUIO1(GUIO_NOSPEECH)
 		},
 		GType_BRA,
@@ -181,13 +157,10 @@ static const PARALLACTIONGameDescription gameDescriptions[] = {
 		{
 			"bra",
 			"Multi-lingual",
-			{
-				{ "request.win", 0, "7a844b9518310e4cc72eabb9c0340314", 6497 },
-				AD_LISTEND
-			},
+			AD_ENTRY1s("request.win", "7a844b9518310e4cc72eabb9c0340314", 6497),
 			Common::UNK_LANG,
 			Common::kPlatformAmiga,
-			ADGF_NO_FLAGS,
+			ADGF_UNSTABLE,
 			GUIO1(GUIO_NOSPEECH)
 		},
 		GType_BRA,
@@ -198,13 +171,10 @@ static const PARALLACTIONGameDescription gameDescriptions[] = {
 		{
 			"bra",
 			"Demo",
-			{
-				{ "request.win", 0, "3b6a99ffd626e324b663839bbad59cb3", 5326 },
-				AD_LISTEND
-			},
+			AD_ENTRY1s("request.win", "3b6a99ffd626e324b663839bbad59cb3", 5326),
 			Common::UNK_LANG,
 			Common::kPlatformAmiga,
-			ADGF_DEMO,
+			ADGF_DEMO | ADGF_UNSTABLE,
 			GUIO1(GUIO_NOSPEECH)
 		},
 		GType_BRA,
@@ -216,9 +186,9 @@ static const PARALLACTIONGameDescription gameDescriptions[] = {
 
 }
 
-class ParallactionMetaEngine : public AdvancedMetaEngine {
+class ParallactionMetaEngineDetection : public AdvancedMetaEngineDetection {
 public:
-	ParallactionMetaEngine() : AdvancedMetaEngine(Parallaction::gameDescriptions, sizeof(Parallaction::PARALLACTIONGameDescription), parallactionGames) {
+	ParallactionMetaEngineDetection() : AdvancedMetaEngineDetection(Parallaction::gameDescriptions, sizeof(Parallaction::PARALLACTIONGameDescription), parallactionGames) {
 		_guiOptions = GUIO1(GUIO_NOLAUNCHLOAD);
 	}
 
@@ -233,81 +203,6 @@ public:
 	const char *getOriginalCopyright() const override {
 		return "Nippon Safes Inc. (C) Dynabyte";
 	}
-
-	bool hasFeature(MetaEngineFeature f) const override;
-	bool createInstance(OSystem *syst, Engine **engine, const ADGameDescription *desc) const override;
-	SaveStateList listSaves(const char *target) const override;
-	int getMaximumSaveSlot() const override;
-	void removeSaveState(const char *target, int slot) const override;
 };
 
-bool ParallactionMetaEngine::hasFeature(MetaEngineFeature f) const {
-	return
-		(f == kSupportsListSaves) ||
-		(f == kSupportsDeleteSave);
-}
-
-bool Parallaction::Parallaction::hasFeature(EngineFeature f) const {
-	return
-		(f == kSupportsReturnToLauncher);
-}
-
-bool ParallactionMetaEngine::createInstance(OSystem *syst, Engine **engine, const ADGameDescription *desc) const {
-	const Parallaction::PARALLACTIONGameDescription *gd = (const Parallaction::PARALLACTIONGameDescription *)desc;
-	bool res = true;
-
-	switch (gd->gameType) {
-	case Parallaction::GType_Nippon:
-		*engine = new Parallaction::Parallaction_ns(syst, gd);
-		break;
-	case Parallaction::GType_BRA:
-		*engine = new Parallaction::Parallaction_br(syst, gd);
-		break;
-	default:
-		res = false;
-		error("Parallaction engine: unknown gameType");
-	}
-
-	return res;
-}
-
-SaveStateList ParallactionMetaEngine::listSaves(const char *target) const {
-	Common::SaveFileManager *saveFileMan = g_system->getSavefileManager();
-
-	Common::String pattern(ConfMan.getDomain(target)->getVal("gameid") + ".0##");
-	Common::StringArray filenames = saveFileMan->listSavefiles(pattern);
-
-	SaveStateList saveList;
-	for (Common::StringArray::const_iterator file = filenames.begin(); file != filenames.end(); ++file) {
-		// Obtain the last 2 digits of the filename, since they correspond to the save slot
-		int slotNum = atoi(file->c_str() + file->size() - 2);
-
-		if (slotNum >= 0 && slotNum <= 99) {
-			Common::InSaveFile *in = saveFileMan->openForLoading(*file);
-			if (in) {
-				Common::String saveDesc = in->readLine();
-				saveList.push_back(SaveStateDescriptor(slotNum, saveDesc));
-				delete in;
-			}
-		}
-	}
-
-	// Sort saves based on slot number.
-	Common::sort(saveList.begin(), saveList.end(), SaveStateDescriptorSlotComparator());
-	return saveList;
-}
-
-int ParallactionMetaEngine::getMaximumSaveSlot() const { return 99; }
-
-void ParallactionMetaEngine::removeSaveState(const char *target, int slot) const {
-	Common::String filename = ConfMan.getDomain(target)->getVal("gameid");
-	filename += Common::String::format(".0%02d", slot);
-
-	g_system->getSavefileManager()->removeSavefile(filename);
-}
-
-#if PLUGIN_ENABLED_DYNAMIC(PARALLACTION)
-	REGISTER_PLUGIN_DYNAMIC(PARALLACTION, PLUGIN_TYPE_ENGINE, ParallactionMetaEngine);
-#else
-	REGISTER_PLUGIN_STATIC(PARALLACTION, PLUGIN_TYPE_ENGINE, ParallactionMetaEngine);
-#endif
+REGISTER_PLUGIN_STATIC(PARALLACTION_DETECTION, PLUGIN_TYPE_ENGINE_DETECTION, ParallactionMetaEngineDetection);

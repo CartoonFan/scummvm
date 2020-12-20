@@ -48,6 +48,7 @@
 #include "startrek/object.h"
 #include "startrek/sound.h"
 #include "startrek/space.h"
+#include "startrek/detection.h"
 
 
 using Common::SharedPtr;
@@ -116,15 +117,7 @@ const int MAX_BUFFERED_WALK_ACTIONS = 32;
 const int MAX_BAN_FILES = 16;
 
 
-enum StarTrekGameType {
-	GType_ST25 = 1,
-	GType_STJR = 2
-};
 
-enum StarTrekGameFeatures {
-	GF_DEMO  = (1 << 0),
-	GF_CDROM = (1 << 1)
-};
 
 enum kDebugLevels {
 	kDebugSound =     1 << 0,
@@ -218,8 +211,27 @@ struct TrekEvent {
 	uint32 tick;
 };
 
+struct ComputerTopic {
+	Common::String fileName;
+	Common::String topic;
+};
 
-struct StarTrekGameDescription;
+struct EnterpriseState {
+	bool shields;
+	bool weapons;
+	bool underAttack;
+	bool inOrbit;
+	bool targetAnalysis;
+
+	EnterpriseState() {
+		shields = false;
+		weapons = false;
+		underAttack = false;
+		inOrbit = false;
+		targetAnalysis = false;
+	}
+};
+
 class Graphics;
 class IWFile;
 class Sound;
@@ -240,9 +252,38 @@ public:
 	void runTransportSequence(const Common::String &name);
 
 	// Bridge
-	void initBridge(bool b) {}; // TODO
-	void cleanupBridge() {}; // TODO
+	void initBridge(bool b);
+	void loadBridge();
+	void loadBridgeActors();
+	void cleanupBridge();
+	void runBridge();
+	void setBridgeMouseCursor();
+	void playBridgeSequence(int sequenceId);
+	void handleBridgeEvents();
+	void handleBridgeComputer();
+	void showMissionPerformance(int score, int missionScoreTextId);
 
+	int _bridgeSequenceToLoad;
+
+private:
+	Common::String getSpeechSampleForNumber(int number);
+	void showTextboxBridge(int talker, int textId);
+	void showTextboxBridge(int talker, Common::String text);
+	void showBridgeScreenTalkerWithMessage(int textId, Common::String talkerHeader, Common::String talkerId, bool removeTalker = true);
+	void showBridgeScreenTalkerWithMessages(Common::String texts[], Common::String talkerHeader, Common::String talkerId, bool removeTalker = true);
+	void showMissionStartEnterpriseFlyby(Common::String sequence, Common::String name);
+	void startBattle(Common::String enemyShip);
+	void wrongDestinationRandomEncounter();
+	void bridgeCrewAction(int crewId);
+	void contactTargetAction();
+
+	int _targetPlanet;
+	int _currentPlanet;
+	int _currentScreenTalker;
+	bool _gameIsPaused;
+	bool _hailedTarget;
+
+public:
 	void playMovie(Common::String filename);
 	void playMovieMac(Common::String filename);
 
@@ -271,7 +312,7 @@ public:
 	int loadActorAnimWithRoomScaling(int actorIndex, const Common::String &animName, int16 x, int16 y);
 	Fixed8 getActorScaleAtPosition(int16 y);
 	void addAction(const Action &action);
-	void addAction(byte type, byte b1, byte b2, byte b3);
+	void addAction(int8 type, byte b1, byte b2, byte b3);
 	void handleAwayMissionAction();
 
 	void checkTouchedLoadingZone(int16 x, int16 y);
@@ -349,7 +390,7 @@ public:
 	void renderBan(byte *screenPixels, byte *bgPixels, int banFileIndex);
 	void renderBanAboveSprites();
 	void removeActorFromScreen(int actorIndex);
-	void actorFunc1();
+	void removeDrawnActorsFromScreen();
 	void drawActorToScreen(Actor *actor, const Common::String &animName, int16 x, int16 y, Fixed8 scale, bool addSprite);
 	void releaseAnim(Actor *actor);
 	void initStandAnim(int actorIndex);
@@ -506,8 +547,10 @@ public:
 	 * Effectively replaces the "readTextFromRdf" function.
 	 */
 	String readTextFromArrayWithChoices(int choiceIndex, uintptr data, String *headerTextOutput);
+	Common::String readTextFromFoundComputerTopics(int choiceIndex, uintptr data, String *headerTextOutput);
 
 	Common::String showCodeInputBox();
+	Common::String showComputerInputBox();
 	void redrawTextInput();
 	void addCharToTextInputBuffer(char c);
 	/**
@@ -544,6 +587,12 @@ public:
 	 */
 	void drawMenuButtonOutline(Bitmap *bitmap, byte color);
 	void showOptionsMenu(int x, int y);
+	void showBridgeMenu(Common::String menu, int x, int y);
+	void handleBridgeMenu(int menuEvent);
+	void showStarMap();
+	void orbitPlanet();
+	void captainsLog();
+
 	/**
 	 * Show the "action selection" menu, ie. look, talk, etc.
 	 */
@@ -735,11 +784,21 @@ public:
 	IWFile *_iwFile;
 	Resource *_resource;
 
+	EnterpriseState _enterpriseState;
+
 private:
+	int leftClickEvent();
+	int rightClickEvent();
+	int mouseMoveEvent();
+	int lookupNextAction(const int *lookupArray, int action);
+	void loadBridgeComputerTopics();
+	void bridgeLeftClick();
+
 	Common::RandomSource _randomSource;
 	Common::SineTable _sineTable;
 	Common::CosineTable _cosineTable;
 	Room *_room;
+	Common::List<ComputerTopic> _computerTopics;
 };
 
 // Static function

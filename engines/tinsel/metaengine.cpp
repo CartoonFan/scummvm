@@ -71,7 +71,7 @@ public:
 
 	Common::Error createInstance(OSystem *syst, Engine **engine, const ADGameDescription *desc) const override;
 
-    bool hasFeature(MetaEngineFeature f) const override;
+	bool hasFeature(MetaEngineFeature f) const override;
 	SaveStateList listSaves(const char *target) const override;
 	int getMaximumSaveSlot() const override;
 	SaveStateDescriptor querySaveMetaInfos(const char *target, int slot) const override;
@@ -179,7 +179,7 @@ int TinselMetaEngine::getMaximumSaveSlot() const { return 99; }
 void TinselMetaEngine::removeSaveState(const char *target, int slot) const {
 	Tinsel::setNeedLoad();
 	// Same issue here as with loadGameState(): we need the physical savegame
-	// slot. Refer to bug #3387551.
+	// slot. Refer to bug #5819.
 	int listSlot = -1;
 	const int numStates = Tinsel::getList(g_system->getSavefileManager(), target);
 	for (int i = 0; i < numStates; ++i) {

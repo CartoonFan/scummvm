@@ -38,6 +38,9 @@
 #define GAMECONTROLLERDB_FILE "gamecontrollerdb.txt"
 
 static uint32 convUTF8ToUTF32(const char *src) {
+	if (!src || src[0] == 0)
+		return 0;
+
 	Common::U32String u32(src);
 	return u32[0];
 }
@@ -70,12 +73,12 @@ void SdlEventSource::loadGameControllerMappingFile() {
 #endif
 
 SdlEventSource::SdlEventSource()
-    : EventSource(), _scrollLock(false), _joystick(0), _lastScreenID(0), _graphicsManager(0), _queuedFakeMouseMove(false),
-      _lastHatPosition(SDL_HAT_CENTERED), _mouseX(0), _mouseY(0), _engineRunning(false)
+	: EventSource(), _scrollLock(false), _joystick(0), _lastScreenID(0), _graphicsManager(0), _queuedFakeMouseMove(false),
+	  _lastHatPosition(SDL_HAT_CENTERED), _mouseX(0), _mouseY(0), _engineRunning(false)
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-      , _queuedFakeKeyUp(false), _fakeKeyUp(), _controller(nullptr)
+	  , _queuedFakeKeyUp(false), _fakeKeyUp(), _controller(nullptr)
 #endif
-      {
+	  {
 	int joystick_num = ConfMan.getInt("joystick_num");
 	if (joystick_num >= 0) {
 		// Initialize SDL joystick subsystem
@@ -501,12 +504,7 @@ bool SdlEventSource::dispatchSDLEvent(SDL_Event &ev, Common::Event &event) {
 	case SDL_WINDOWEVENT:
 		// We're only interested in events from the current display window
 		if (_graphicsManager) {
-			uint32 windowID = 0;
-			if (dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)) {
-				windowID = SDL_GetWindowID(dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)->getWindow()->getSDLWindow());
-			} else if (dynamic_cast<SdlGraphicsManager *>(_graphicsManager)) {
-				windowID = SDL_GetWindowID(dynamic_cast<SdlGraphicsManager *>(_graphicsManager)->getWindow()->getSDLWindow());
-			}
+			uint32 windowID = SDL_GetWindowID(_graphicsManager->getWindow()->getSDLWindow());
 			if (windowID != ev.window.windowID) {
 				return false;
 			}
@@ -515,11 +513,7 @@ bool SdlEventSource::dispatchSDLEvent(SDL_Event &ev, Common::Event &event) {
 		switch (ev.window.event) {
 		case SDL_WINDOWEVENT_EXPOSED:
 			if (_graphicsManager) {
-				if (dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)) {
-					dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)->notifyVideoExpose();
-				} else if (dynamic_cast<SdlGraphicsManager *>(_graphicsManager)) {
-					dynamic_cast<SdlGraphicsManager *>(_graphicsManager)->notifyVideoExpose();
-				}
+				_graphicsManager->notifyVideoExpose();
 			}
 			return false;
 
@@ -578,11 +572,7 @@ bool SdlEventSource::dispatchSDLEvent(SDL_Event &ev, Common::Event &event) {
 #else
 	case SDL_VIDEOEXPOSE:
 		if (_graphicsManager) {
-			if (dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)) {
-				dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)->notifyVideoExpose();
-			} else if (dynamic_cast<SdlGraphicsManager *>(_graphicsManager)) {
-				dynamic_cast<SdlGraphicsManager *>(_graphicsManager)->notifyVideoExpose();
-			}
+			_graphicsManager->notifyVideoExpose();
 		}
 		return false;
 
@@ -754,9 +744,9 @@ void SdlEventSource::openJoystick(int joystickIndex) {
 			_joystick = SDL_JoystickOpen(joystickIndex);
 			debug("Using joystick: %s",
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-                  SDL_JoystickName(_joystick)
+				  SDL_JoystickName(_joystick)
 #else
-                  SDL_JoystickName(joystickIndex)
+				  SDL_JoystickName(joystickIndex)
 #endif
 			);
 		}

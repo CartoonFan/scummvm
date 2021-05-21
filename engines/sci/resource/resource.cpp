@@ -28,6 +28,7 @@
 #include "common/textconsole.h"
 #include "common/translation.h"
 #ifdef ENABLE_SCI32
+#include "common/installshield_cab.h"
 #include "common/memstream.h"
 #endif
 
@@ -609,11 +610,16 @@ void ResourceSource::loadResource(ResourceManager *resMan, Resource *res) {
 	ResourceType type = resMan->convertResType(fileStream->readByte());
 	ResVersion volVersion = resMan->getVolVersion();
 
-	// FIXME: if resource.msg has different version from SCIII, this has to be modified.
-	if (((type == kResourceTypeMessage && res->getType() == kResourceTypeMessage) || (type == kResourceTypeText && res->getType() == kResourceTypeText)) && g_sci->getLanguage() == Common::KO_KOR)
+	// FIXME: if resource.msg has different version from SCI, this has to be modified.
+	if (
+		(
+			(type == kResourceTypeMessage && res->getType() == kResourceTypeMessage) ||
+			(type == kResourceTypeText && res->getType() == kResourceTypeText)
+		) &&
+		g_sci && g_sci->getLanguage() == Common::KO_KOR)
 		volVersion = kResVersionSci11;
 	fileStream->seek(res->_fileOffset, SEEK_SET);
-	
+
 	int error = res->decompress(volVersion, fileStream);
 	if (error) {
 		warning("Error %d occurred while reading %s from resource file %s: %s",
@@ -626,7 +632,7 @@ void ResourceSource::loadResource(ResourceManager *resMan, Resource *res) {
 }
 
 Resource *ResourceManager::testResource(ResourceId id) {
-	return _resMap.getVal(id, NULL);
+	return _resMap.getValOrDefault(id, NULL);
 }
 
 int ResourceManager::addAppropriateSources() {
@@ -676,7 +682,7 @@ int ResourceManager::addAppropriateSources() {
 		if (mapFiles.empty() || files.empty())
 			return 0;
 
-		if (Common::File::exists("ressci.001")) {
+		if (Common::File::exists("ressci.001") && !Common::File::exists("resource.aud")) {
 			_multiDiscAudio = true;
 		}
 
@@ -698,6 +704,7 @@ int ResourceManager::addAppropriateSources() {
 			}
 
 			if (!foundVolume &&
+				g_sci &&
 				// GK2 on Steam comes with an extra bogus resource map file;
 				// ignore it instead of treating it as a bad resource
 				(g_sci->getGameId() != GID_GK2 || mapFiles.size() != 2 || mapNumber != 1)) {
@@ -725,6 +732,18 @@ int ResourceManager::addAppropriateSources() {
 
 	if (Common::File::exists("altres.map"))
 		addSource(new VolumeResourceSource("altres.000", addExternalMap("altres.map"), 0));
+
+#ifdef ENABLE_SCI32
+	// Some LSL7 Polish CDs have all of the patch files in InstallShield cabinet files
+	//  (data1.cab/hdr) while the rest of the game is in normal SCI files. Trac #10066
+	if (g_sci &&
+		g_sci->getGameId() == GID_LSL7 && g_sci->getLanguage() == Common::PL_POL) {
+		Common::Archive *archive = Common::makeInstallShieldArchive("data");
+		if (archive != nullptr) {
+			SearchMan.add("data1.cab", archive);
+		}
+	}
+#endif
 
 	return 1;
 }
@@ -1527,6 +1546,9 @@ bool ResourceManager::detectSci2Mac() {
 #endif
 
 bool ResourceManager::isBlacklistedPatch(const ResourceId &resId) const {
+	if (!g_sci)
+		return false;
+
 	switch (g_sci->getGameId()) {
 	case GID_SHIVERS:
 		// The SFX resource map patch in the Shivers interactive demo has
@@ -1998,13 +2020,13 @@ int ResourceManager::readResourceMapSCI1(ResourceSource *map) {
 				return SCI_ERROR_NO_RESOURCE_FILES_FOUND;
 			}
 
-			Resource *resource = _resMap.getVal(resId, NULL);
-			if (!resource) {
+			Resource *resource =  NULL;
+			if (!_resMap.tryGetVal(resId,resource)) {
 				addResource(resId, source, fileOffset, 0, map->getLocationName());
 			} else {
 				// If the resource is already present in a volume, change it to
 				// the new content (but only in a volume, so as not to overwrite
-				// external patches - refer to bug #3366295).
+				// external patches - refer to bug #5796).
 				// This is needed at least for the German version of Pharkas.
 				// That version contains several duplicate resources INSIDE the
 				// resource data files like fonts, views, scripts, etc. Thus,
@@ -2036,7 +2058,7 @@ int ResourceManager::readResourceMapSCI1(ResourceSource *map) {
 				} else if (resId.getNumber() == 65535) {
 					volumeName = Common::String::format("RESSFX.%03d", mapVolumeNr);
 
-					if (g_sci->getGameId() == GID_RAMA && !Common::File::exists(volumeName)) {
+					if (g_sci && g_sci->getGameId() == GID_RAMA && !Common::File::exists(volumeName)) {
 						if (Common::File::exists("RESOURCE.SFX")) {
 							volumeName = "RESOURCE.SFX";
 						} else if (Common::File::exists("RESSFX.001")) {
@@ -2137,8 +2159,8 @@ void MacResourceForkResourceSource::scanSource(ResourceManager *resMan) {
 				Common::String resourceName = _macResMan->getResName(tagArray[i], idArray[j]);
 
 				// Same as with audio36 above
-				if (!resourceName.empty() && 
-					(resourceName[0] == '#' || 
+				if (!resourceName.empty() &&
+					(resourceName[0] == '#' ||
 					 resourceName[0] == 'S' || // Most SCI32 games
 					 resourceName[0] == 'T'))  // Torin syncs start with T or S
 					resId = convertPatchNameBase36(kResourceTypeSync36, resourceName);
@@ -2196,7 +2218,7 @@ Resource *ResourceManager::updateResource(ResourceId resId, ResourceSource *src,
 
 Resource *ResourceManager::updateResource(ResourceId resId, ResourceSource *src, uint32 offset, uint32 size, const Common::String &sourceMapLocation) {
 	// Update a patched resource, whether it exists or not
-	Resource *res = _resMap.getVal(resId, nullptr);
+	Resource *res = _resMap.getValOrDefault(resId, nullptr);
 
 	// When pulling from resource the "main" file may not even
 	// exist as both forks may be combined into MacBin
@@ -2243,7 +2265,7 @@ Resource *ResourceManager::updateResource(ResourceId resId, ResourceSource *src,
 }
 
 int Resource::readResourceInfo(ResVersion volVersion, Common::SeekableReadStream *file,
-                                      uint32 &szPacked, ResourceCompression &compression) {
+									  uint32 &szPacked, ResourceCompression &compression) {
 	// SCI0 volume format:  {wResId wPacked+4 wUnpacked wCompression} = 8 bytes
 	// SCI1 volume format:  {bResType wResNumber wPacked+4 wUnpacked wCompression} = 9 bytes
 	// SCI1.1 volume format:  {bResType wResNumber wPacked wUnpacked wCompression} = 9 bytes
@@ -2817,7 +2839,7 @@ bool ResourceManager::detectPaletteMergingSci11() {
 		}
 
 		// Hardcoded: Laura Bow 2 floppy uses new palette resource, but still palette merging + 16 bit color matching
-		if (g_sci->getGameId() == GID_LAURABOW2 && !g_sci->isCD() && !g_sci->isDemo()) {
+		if (g_sci && g_sci->getGameId() == GID_LAURABOW2 && !g_sci->isCD() && !g_sci->isDemo()) {
 			return true;
 		}
 	}
@@ -3091,7 +3113,7 @@ Common::String ResourceManager::findSierraGameId(const bool isBE) {
 }
 
 bool ResourceManager::isKoreanMessageMap(ResourceSource *source) {
-	return source->getLocationName() == "message.map" && g_sci->getLanguage() == Common::KO_KOR;
+	return source->getLocationName() == "message.map" && g_sci && g_sci->getLanguage() == Common::KO_KOR;
 }
 
 const Common::String &Resource::getResourceLocation() const {

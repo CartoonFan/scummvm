@@ -36,11 +36,11 @@
 
 class AgosMetaEngine : public AdvancedMetaEngine {
 public:
-    const char *getName() const override {
+	const char *getName() const override {
 		return "agos";
 	}
 
-    bool hasFeature(MetaEngineFeature f) const override;
+	bool hasFeature(MetaEngineFeature f) const override;
 
 	Common::Error createInstance(OSystem *syst, Engine **engine) const override {
 		Engines::upgradeTargetIfNecessary(obsoleteGameIDsTable);
@@ -203,11 +203,14 @@ void AGOSEngine::loadArchives() {
 
 	if (getFeatures() & GF_PACKED) {
 		for (ag = _gameDescription->desc.filesDescriptions; ag->fileName; ag++) {
-			if (!SearchMan.hasArchive(ag->fileName)) {
-				Common::SeekableReadStream *stream = SearchMan.createReadStreamForMember(ag->fileName);
+			if (ag->fileType != GAME_CABFILE)
+				continue;
 
-				if (stream)
-					SearchMan.add(ag->fileName, Common::makeInstallShieldArchive(stream, DisposeAfterUse::YES), ag->fileType);
+			if (!SearchMan.hasArchive(ag->fileName)) {
+				// Assumes the cabinet file is named data1.cab
+				Common::Archive *cabinet = Common::makeInstallShieldArchive("data");
+				if (cabinet)
+					SearchMan.add(ag->fileName, cabinet);
 			}
 		}
 	}

@@ -117,8 +117,7 @@ struct ExtendedSavegameHeader {
  *
  * Every engine "plugin" provides a hook to get an instance of a MetaEngineDetection
  * subclass for that "engine plugin". For example, SCUMM provides ScummMetaEngineDetection.
- * This is then in turn used by the frontend code to detect games,
- * and other useful functionality. 
+ * This is then in turn used by the frontend code to detect games, and other useful functionality.
  *
  * To instantiate actual Engine objects, see the class @ref MetaEngine.
  */
@@ -157,7 +156,7 @@ public:
 	 *
 	 * @param target  Name of a config manager target.
 	 *
-	 * @return A list of extra GUI options for an engine plugin and target.          
+	 * @return A list of extra GUI options for an engine plugin and target.
 	 */
 	virtual const ExtraGuiOptions getExtraGuiOptions(const Common::String &target) const {
 		return ExtraGuiOptions();
@@ -189,8 +188,7 @@ public:
 };
 
 /**
- * A MetaEngine is another factory for Engine instances, and is very
- * similar to meta engines.
+ * A MetaEngine is another factory for Engine instances, and is very similar to MetaEngineDetection.
  *
  * This class, however, is made of of bridged functionalities that can be used to connect
  * an actual Engine with a MetaEngine. Every engine "plugin" provides a hook to get an instance
@@ -202,23 +200,25 @@ public:
  * the engine, while a MetaEngine will always build into the executable to be able to detect code.
  */
 class MetaEngine : public PluginObject {
-private:
+protected:
 	/**
-	 * Convert the current screen contents to a thumbnail and save it.
+	 * Convert the current screen contents to a thumbnail. Can be overriden by individual
+	 * engine meta engines to provide their own thumb, such as hiding any on-screen save
+	 * dialog so that it won't appear in the thumbnail.
 	 */
-	static void saveScreenThumbnail(Common::OutSaveFile *saveFile);
+	virtual void getSavegameThumbnail(Graphics::Surface &thumb);
 public:
 	virtual ~MetaEngine() {}
 
 	/**
 	 * Name of the engine plugin.
 	 *
-	 * Classes inheriting a MetaEngineConnect must provide an engineID here,
+	 * Classes inheriting a MetaEngine must provide an engineID here,
 	 * which can then be used to match an Engine with MetaEngine.
 	 *
-	 * For example, ScummMetaEngine inherits MetaEngine and provides a engineID of "Scumm".
-	 * ScummMetaEngineConnect inherits MetaEngineConnect and provides the name "Scumm".
-	 * This way, an Engine can be easily matched with a MetaEngine.
+	 * For example, ScummMetaEngineDetection inherits MetaEngineDetection and provides a
+	 * engineID of "scumm". ScummMetaEngine inherits MetaEngine and provides the name
+	 * "Scumm". This way, an Engine can be easily matched with a MetaEngine.
 	 */
 	virtual const char *getName() const = 0;
 
@@ -356,8 +356,8 @@ public:
 	 * Engines can build custom option dialogs from here, but by default a simple widget
 	 * allowing to configure the extra GUI options is used.
 	 *
-	 * The engine that builds the Engines tab in the Edit Game dialog uses a MetaEngine.
-	 * The engine that specifies a custom dialog when a game is running uses a MetaEngineConnect.
+	 * The engine that builds the Engines tab in the Edit Game dialog uses a MetaEngineDetection.
+	 * The engine that specifies a custom dialog when a game is running uses a MetaEngine.
 	 *
 	 * Engines are not supposed to have an Engine tab in the Edit Game dialog
 	 * can return nullptr.
@@ -415,7 +415,7 @@ public:
 		/**
 		 * Feature a thumbnail in savegames.
 		 *
-		 * This means that the engine includes a thumbnail in save states 
+		 * This means that the engine includes a thumbnail in save states
 		 * returned via querySaveMetaInfo.
 		 * This flag can only be set when kSavesSupportMetaInfo is set.
 		 */
@@ -474,7 +474,7 @@ public:
 	 *
 	 * @param target  Name of a config manager target.
 	 *
-	 * @return A list of achievement descriptions for an engine plugin and target.                
+	 * @return A list of achievement descriptions for an engine plugin and target.
 	 */
 	virtual const Common::AchievementsInfo getAchievementsInfo(const Common::String &target) const {
 		return Common::AchievementsInfo();
@@ -490,7 +490,8 @@ public:
 	/**
 	 * Write the extended savegame header to the given savegame file.
 	 */
-	static void appendExtendedSave(Common::OutSaveFile *saveFile, uint32 playtime, Common::String desc, bool isAutosave);
+	void appendExtendedSave(Common::OutSaveFile *saveFile, uint32 playtime, Common::String desc, bool isAutosave);
+
 	/**
 	 * Parse the extended savegame header to retrieve the SaveStateDescriptor information.
 	 */

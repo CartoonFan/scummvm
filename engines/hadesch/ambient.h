@@ -67,7 +67,7 @@ public:
 	void unpause();
 	void hide();
   	void unpauseAndFirstFrame();
-    	void selectFirstFrame();
+		void selectFirstFrame();
 	void playFinished(bool reschedule);
 	bool isReady();
 private:
@@ -89,7 +89,7 @@ private:
 	Common::SharedPtr<AmbiantAnimInternal> _internal;
 };
 
-	
+
 class AmbientAnimWeightedSet {
 public:
 	void readTableFilePriamSFX(const TextTable &table);

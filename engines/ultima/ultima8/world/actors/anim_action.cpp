@@ -20,17 +20,16 @@
  *
  */
 
-#include "ultima/ultima8/misc/pent_include.h"
 #include "ultima/ultima8/world/actors/anim_action.h"
 #include "ultima/ultima8/world/actors/actor.h"
-#include "ultima/ultima8/kernel/core_app.h"
+#include "ultima/ultima8/ultima8.h"
 
 namespace Ultima {
 namespace Ultima8 {
 
 void AnimAction::getAnimRange(unsigned int lastanim, Direction lastdir,
-                              bool firststep, Direction dir,
-                              unsigned int &startframe, unsigned int &endframe) const {
+							  bool firststep, Direction dir,
+							  unsigned int &startframe, unsigned int &endframe) const {
 	startframe = 0;
 	endframe = _size;
 
@@ -63,8 +62,8 @@ void AnimAction::getAnimRange(unsigned int lastanim, Direction lastdir,
 }
 
 void AnimAction::getAnimRange(const Actor *actor, Direction dir,
-                              unsigned int &startframe,
-                              unsigned int &endframe) const {
+							  unsigned int &startframe,
+							  unsigned int &endframe) const {
 	getAnimRange(actor->getLastAnim(), actor->getDir(),
 	             actor->hasActorFlags(Actor::ACT_FIRSTSTEP),
 	             dir, startframe, endframe);
@@ -87,7 +86,7 @@ const AnimFrame &AnimAction::getFrame(Direction dir, unsigned int frameno) const
  having to check against game type each time they are used
 */
 /*static*/
-AnimAction::AnimActionFlags AnimAction::loadAnimActionFlags(uint16 rawflags) {
+AnimAction::AnimActionFlags AnimAction::loadAnimActionFlags(uint32 rawflags) {
 	uint32 ret = AAF_NONE;
 	ret |= (rawflags & AAF_COMMONFLAGS);
 	if (GAME_IS_U8) {

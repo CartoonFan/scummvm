@@ -186,12 +186,12 @@ void AmbientAnim::play(bool reschedule) {
 	room->playAnim(_internal->_descs[variant]._animName, _internal->_zValue,
 		       params,
 		       Common::SharedPtr<EventHandler>(new AmbientAnimPlayEnded(*this, reschedule)),
-		       _internal->_offset);		
-	
+		       _internal->_offset);
+
 	if (_internal->_descs[variant]._soundName != "")
 		room->playSFX(_internal->_descs[variant]._soundName, -1);
 }
-	
+
 void AmbientAnim::schedule() {
 	if (_internal->_minInterval >= 0 && _internal->_maxInterval >= 0)
 		g_vm->addTimer(
@@ -335,11 +335,11 @@ void AnimClickables::playChosen(const Common::String &name, int counter, const E
 					      _table.get(name, "smackerY", counter).asUint64()));
 	else if (anim != "")
 		room->playAnimWithSpeech(
-			anim, TranscribedSound(sound.c_str(), _transcriptions[sound].c_str()), zValue, PlayAnimParams::disappear(), event,
+			anim, TranscribedSound::make(sound.c_str(), _transcriptions[sound].c_str()), zValue, PlayAnimParams::disappear(), event,
 			Common::Point(_table.get(name, "X", counter).asUint64(),
 				      _table.get(name, "Y", counter).asUint64()));
 	else if (sound != "")
-		room->playSpeech(TranscribedSound(sound.c_str(), _transcriptions[sound].c_str()), event);
+		room->playSpeech(TranscribedSound::make(sound.c_str(), _transcriptions[sound].c_str()), event);
 	else
 		event();
 }

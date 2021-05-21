@@ -155,6 +155,7 @@ SciEngine::SciEngine(OSystem *syst, const ADGameDescription *desc, SciGameId gam
 	SearchMan.addSubDirectoryMatching(gameDataDir, "movies");	// VMD movie files
 	SearchMan.addSubDirectoryMatching(gameDataDir, "music");	// LSL7 music files (GOG version)
 	SearchMan.addSubDirectoryMatching(gameDataDir, "music/22s16");	// LSL7 music files
+	SearchMan.addSubDirectoryMatching(gameDataDir, "data");	// LSL7 Polish patch files (Trac #10066)
 	SearchMan.addSubDirectoryMatching(gameDataDir, "vmd");	// VMD movie files
 	SearchMan.addSubDirectoryMatching(gameDataDir, "duk");	// Duck movie files in Phantasmagoria 2
 	SearchMan.addSubDirectoryMatching(gameDataDir, "Robot Folder"); // Mac robot files
@@ -290,7 +291,6 @@ Common::Error SciEngine::run() {
 	//  - King's Quest 6 CD demo
 	//  - Gabriel Knight 1 CD
 	//  - Police Quest 4 CD
-	// TODO: Check, if Gabriel Knight 1 floppy supports high resolution
 	//
 	// Gabriel Knight 1 on Mac is hi-res only, so it should NOT get this option.
 	// Confirmed by [md5] and originally by clone2727.
@@ -468,13 +468,15 @@ bool SciEngine::gameHasFanMadePatch() {
 		{ GID_LSL3,       380,   6148,    195,  0x35 },
 		{ GID_LSL5,       994,   4810,   1342,  0x78 },	// English
 		{ GID_LSL5,       994,   4942,   1392,  0x76 },	// German
-		{ GID_PQ1,        994,   4332,   1473,  0x78 },
+		// GOG includes PQ1 patches. Incompatibilities are resolved by our script patches
+		//{ GID_PQ1,        994,   4332,   1473,  0x78 },
 		{ GID_PQ2,        200,  10614,      0,  0x00 },
-		{ GID_PQ3,        994,   4686,   1291,  0x78 },	// English
-		{ GID_PQ3,        994,   4734,   1283,  0x78 },	// German
+		// GOG includes PQ3 patches. Incompatibilities are resolved by our script patches
+		//{ GID_PQ3,        994,   4686,   1291,  0x78 },	// English
+		//{ GID_PQ3,        994,   4734,   1283,  0x78 },	// German
 		{ GID_QFG1VGA,    994,   4388,      0,  0x00 },
 		{ GID_QFG3,       994,   4714,      2,  0x48 },
-		// TODO: Disabled, as it fixes a whole lot of bugs which can't be tested till SCI2.1 support is finished
+		// GOG includes QFG4 patches. Incompatibilities are resolved by our script patches
 		//{ GID_QFG4,       710,  11477,      0,  0x00 },
 		{ GID_SQ1,        994,   4740,      0,  0x00 },
 		{ GID_SQ5,        994,   4142,   1496,  0x78 },	// English/German/French
@@ -828,7 +830,7 @@ bool SciEngine::hasMacIconBar() const {
 }
 
 bool SciEngine::hasMacSaveRestoreDialogs() const {
-    return _gameDescription->platform == Common::kPlatformMacintosh &&
+	return _gameDescription->platform == Common::kPlatformMacintosh &&
 			(getSciVersion() <= SCI_VERSION_2_1_EARLY ||
 			 getGameId() == GID_GK2 ||
 			 getGameId() == GID_SQ6 ||

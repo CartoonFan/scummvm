@@ -24,7 +24,7 @@
 #define FORBIDDEN_SYMBOL_ALLOW_ALL
 
 // HACK to allow building with the SDL backend on MinGW
-// see bug #1800764 "TOOLS: MinGW tools building broken"
+// see bug #3412 "TOOLS: MinGW tools building broken"
 #ifdef main
 #undef main
 #endif // main
@@ -1453,7 +1453,7 @@ static const char *QUEST_ITEM_NAMES_SWORDS[51] = {
 	"Holy Wheel", "Double Cross", "Sky Hook", "Sacred Cow", "Staff of the Mountain",
 	"Hard Rock", "Soft Rock", "Rock Candy", "Ivy Plant", "Spirit Gem", "Temple of Sun holy lamp oil",
 	"Noams Hammer", "Positive Orb", "Negative Orb", "FireBane Staff", "Diamond Edged Pick",
-	"Monga Melon", "Energy Disk", "Old XEEN Quest Item" 
+	"Monga Melon", "Energy Disk", "Old XEEN Quest Item"
 };
 
 static const int WEAPON_BASE_COSTS[35] = {

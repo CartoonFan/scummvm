@@ -115,7 +115,7 @@ public:
 			labItem = -1;
 			break;
 		}
-		
+
 		if ((name == "daedalus" || name == "chute") && labItem < 0) {
 			playDaedalusVideo("daedalus what to do with that", 13005, Common::Point(10, 40));
 			return true;
@@ -142,7 +142,7 @@ public:
 
 			room->playAnimWithSFX("dust cloud", "dust cloud sound", 850, PlayAnimParams::disappear());
 
-			if (hasAll) 
+			if (hasAll)
 				playDaedalusVideo("daedalus exclaims", 13008, Common::Point(0, 2));
 			else {
 				// Original goes to event 4009
@@ -282,8 +282,8 @@ public:
 				room->selectFrame(persistent->_gender == kMale ? "daedalus note text male"
 						  : "daedalus note text female", 799, 0);
 				room->playSpeech(persistent->_gender == kMale ?
-						 TranscribedSound("daedalus note vo male", "Dear hero, now that we've brought peace to the people of Crete, I've used the wings that I've built for myself and my son Icarus to escape. I'm forever grateful for your help. Your friend, Daedalus") :
-						 TranscribedSound("daedalus note vo female", "Dear heroine, now that we've brought peace to the people of Crete, I've used the wings that I've built for myself and my son Icarus to escape. I'm forever grateful for your help. Your friend, Daedalus. Au revoir. Salaam. Good bye."),
+						 TranscribedSound::make("daedalus note vo male", "Dear hero, now that we've brought peace to the people of Crete, I've used the wings that I've built for myself and my son Icarus to escape. I'm forever grateful for your help. Your friend, Daedalus") :
+						 TranscribedSound::make("daedalus note vo female", "Dear heroine, now that we've brought peace to the people of Crete, I've used the wings that I've built for myself and my son Icarus to escape. I'm forever grateful for your help. Your friend, Daedalus. Au revoir. Salaam. Good bye."),
 						 13004);
 			}
 		}

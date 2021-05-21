@@ -97,16 +97,16 @@ class PauseToken {
 public:
 	PauseToken();
 	/**
-     * Construct a pause token.
-     */
+	 * Construct a pause token.
+	 */
 	PauseToken(const PauseToken &);
 #if __cplusplus >= 201103L
 	PauseToken(PauseToken &&);
 #endif
 	~PauseToken();
 	/**
-     * Assign the pause token.
-     */
+	 * Assign the pause token.
+	 */
 	void operator=(const PauseToken &);
 #if __cplusplus >= 201103L
 	void operator=(PauseToken &&);
@@ -175,6 +175,11 @@ protected:
 
 private:
 	/**
+	 * The associated metaengine
+	 */
+	MetaEngine *_metaEngine;
+
+	/**
 	 * The pause level.
 	 *
 	 * 0 means 'running'. A positive value indicates how often the engine
@@ -209,7 +214,7 @@ private:
 	 * Save slot selected via the global main menu.
 	 *
 	 * This slot will be loaded after the main menu execution (not from inside
-	 * the menu loop, to avoid bugs like #2822778).
+	 * the menu loop, to avoid bugs like #4420).
 	 */
 	int _saveSlotToLoad;
 
@@ -322,12 +327,12 @@ public:
 	/**
 	 * Return the engine's debugger instance, if any.
 	 */
-	virtual GUI::Debugger *getDebugger() { return _debugger; }
+	virtual GUI::Debugger *getDebugger() final { return _debugger; }
 
 	/**
 	 * Set the engine's debugger.
 	 *
-	 * Once set, the Engine class is responsible for managing 
+	 * Once set, the Engine class is responsible for managing
 	 * the debugger, and freeing it on exit.
 	 */
 	void setDebugger(GUI::Debugger *debugger) {
@@ -408,7 +413,7 @@ public:
 	 * main menu execution.
 	 *
 	 * This is to avoid loading a savegame from
-	 * inside the menu loop which causes bugs like #2822778.
+	 * inside the menu loop which causes bugs like #4420.
 	 *
 	 * @param slot	The slot from which a save state should be loaded.
 	 */
@@ -490,7 +495,12 @@ public:
 	/**
 	 * Return the MetaEngine instance used by this engine.
 	 */
-	static MetaEngine &getMetaEngine();
+	inline MetaEngine *getMetaEngine() const { return _metaEngine; }
+
+	/**
+	 * Set the MetaEngine instance used by this engine.
+	 */
+	inline void setMetaEngine(MetaEngine *metaEngine) { _metaEngine = metaEngine; }
 
 	/**
 	 * Pause the engine.
@@ -531,9 +541,19 @@ public:
 	/**
 	 * Display a warning to the user that the game is not fully supported.
 	 *
+	 * @param msg  A message that will be presented to user. If empty, then
+	 *             generic message regarding unsupported game is presented
+	 *
 	 * @return True if the user chooses to start anyway, false otherwise.
 	 */
-	static bool warnUserAboutUnsupportedGame();
+	static bool warnUserAboutUnsupportedGame(Common::String msg = Common::String());
+
+	/**
+	 * Display an error message to the user that the game is not supported.
+	 *
+	 * @param extraMsg  An extra message that will be appended to the default message.
+	 */
+	static void errorUnsupportedGame(Common::String extraMsg);
 
 	/**
 	 * Display an error message to the user that the game is not supported.
@@ -603,14 +623,14 @@ public:
 	virtual int getAutosaveSlot() const {
 		return 0;
 	}
-	
+
 	/**
 	 * Check whether it is time to autosave based on the
 	 * provided @p lastSaveTime.
 	 *
 	 * This function is now deprecated as autosaves are handled directly by
 	 * the Engine class and derived classes do not need to worry about it other than
-	 * to implement canSaveAutosaveCurrently() and getAutosaveSlot() 
+	 * to implement canSaveAutosaveCurrently() and getAutosaveSlot()
 	 * if the default implementations are not sufficient.
 	 */
 	bool shouldPerformAutoSave(int lastSaveTime) {

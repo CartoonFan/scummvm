@@ -225,7 +225,7 @@ SaveStateDescriptor CineMetaEngine::querySaveMetaInfos(const char *target, int s
 		SaveStateDescriptor desc;
 		desc.setDescription(_("Empty autosave"));
 		desc.setSaveSlot(slot);
-		desc.setAutosave(true);		
+		desc.setAutosave(true);
 		desc.setWriteProtectedFlag(true);
 		return desc;
 	}
@@ -325,7 +325,7 @@ Common::Error CineEngine::saveGameState(int slot, const Common::String &desc, bo
 }
 
 Common::String CineEngine::getSaveStateName(int slot) const {
-	return getMetaEngine().getSavegameFile(slot, _targetName.c_str());
+	return getMetaEngine()->getSavegameFile(slot, _targetName.c_str());
 }
 
 bool CineEngine::canLoadGameStateCurrently() {

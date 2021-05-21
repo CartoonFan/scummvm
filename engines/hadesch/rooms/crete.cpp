@@ -29,7 +29,7 @@
 namespace Hadesch {
 
 static const char *kTalusImage = "r1100bb0";
-static const char *kTalusImageWithShip = "r1100bc0";  
+static const char *kTalusImageWithShip = "r1100bc0";
 static const char *kTalusMovie = "r1100ba0";
 static const char *kTalusHotzone = "Talus";
 static const char *kTavernImage = "r2190ba0";
@@ -68,7 +68,7 @@ static const char *vaseSegment[] = {
 	"r1220bc0",
 	"r1220bd0",
 	"r1220be0",
-	"r1220bf0"	
+	"r1220bf0"
 };
 
 enum {
@@ -426,7 +426,7 @@ public:
 				persistent->_creteIntroAtlantisWood = false;
 			}
 			return;
-				
+
 		}
 
 		if (name == "SmallDisk") {
@@ -665,7 +665,7 @@ TODO:
 			persistent->_cretePlayedZeusCheckOutThatBox = true;
 			room->disableMouse();
 			room->playAnimWithSpeech("r2230ba0",
-						TranscribedSound("r2230wa0",
+						TranscribedSound::make("r2230wa0",
 								 "Hey, why don't you check out that box? Maybe it has something that can help"),
 						4000,
 						PlayAnimParams::keepLastFrame(),
@@ -747,7 +747,7 @@ TODO:
 		case 12403:
 			room->disableMouse();
 			room->playAnimWithSpeech("r2230ba0",
-						 TranscribedSound("r2230wb0", "I think those buttons control the symbols"),
+						 TranscribedSound::make("r2230wb0", "I think those buttons control the symbols"),
 						 4000,
 						 PlayAnimParams::keepLastFrame(), 12404,
 						 kOffsetRightRoom);
@@ -769,7 +769,7 @@ TODO:
 				break;
 			room->disableMouse();
 			room->playAnimWithSpeech("r2230ba0",
-						 TranscribedSound("r2230wc0", "Try to spell my name"),
+						 TranscribedSound::make("r2230wc0", "Try to spell my name"),
 						 4000,
 						 PlayAnimParams::keepLastFrame(), 12407,
 						 kOffsetRightRoom);
@@ -852,13 +852,13 @@ TODO:
 			room->selectFrame("r2035ba0", 1200, 0);
 
 			// Originally event 12123
-			room->playSpeech(TranscribedSound(
+			room->playSpeech(TranscribedSound::make(
 						      "r2035wa0",
 						      "Seems the only thing I can count on you two for is target practice"), 12124);
 			persistent->_creteHadesPusnishesPainAndPanic = false;
 			return;
 		}
-		
+
 		room->loadHotZones("Crete.HOT", false);
 		room->addStaticLayer("r1010pa0", kBackgroundZ); // background
 		g_vm->getHeroBelt()->setColour(HeroBelt::kWarm);
@@ -871,7 +871,7 @@ TODO:
 		room->playAnimLoop("r1120ba0", 5500);
 		room->playAnimLoop("r1160ba0", 5000);
 		room->playAnimLoop("r1170ba0", 5000);
-		
+
 		room->selectFrame(kTavernImage, kTavernImageZ, 0, kOffsetRightRoom);
 		room->enableMouse();
 		room->setPannable(true);
@@ -886,7 +886,7 @@ TODO:
 		}
 
 		room->setUserPanCallback(-1, -1, 12140, 12142);
-		
+
 		if (quest == kMedusaQuest && !persistent->_creteAlchemistExploded) {
 			persistent->_creteAlchemistExploded = true;
 			room->disableMouse();
@@ -1090,7 +1090,7 @@ TODO:
 			showWomanDrawing = true;
 			if (quest != kCreteQuest && quest != kTroyQuest)
 				toughGuyPosition = 1;
-			else 
+			else
 				toughGuyPosition = g_vm->getRnd().getRandomBit();
 			break;
 		case 7:
@@ -1441,7 +1441,7 @@ private:
 		Common::SharedPtr<VideoRoom> room = g_vm->getVideoRoom();
 		for(int i = 0; i < 4; i++)
 			room->selectFrame(vaseSegment[i], 1000, _vasePos[i]);
-			
+
 	}
 
 	void showSandals() {
@@ -1493,7 +1493,7 @@ private:
 	void redrawStrongBox() {
 		Common::SharedPtr<VideoRoom> room = g_vm->getVideoRoom();
 		Persistent *persistent = g_vm->getPersistent();
-		
+
 		room->setHotzoneEnabled("Potion", persistent->_creteStrongBoxState == Persistent::BOX_OPEN_POTION);
 		room->setHotzoneEnabled("Latch", persistent->_creteStrongBoxState == Persistent::BOX_CLOSED);
 		room->setHotzoneEnabled("ButtonN", persistent->_creteStrongBoxState == Persistent::BOX_OPEN);

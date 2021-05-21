@@ -55,7 +55,7 @@
 	kFeaturesAdLib,
 	0, 0, 0
 },
-{ // Supplied by cybot_tmin in bug report #1667743
+{ // Supplied by cybot_tmin in bug report #3084
 	{
 		"ween",
 		"",
@@ -73,7 +73,21 @@
 	{
 		"ween",
 		"",
-		AD_ENTRY1("intro.stk", "4b10525a3782aa7ecd9d833b5c1d308b"),
+		AD_ENTRY1s("intro.stk", "4b10525a3782aa7ecd9d833b5c1d308b", 7029591),
+		FR_FRA,
+		kPlatformDOS,
+		ADGF_NO_FLAGS,
+		GUIO2(GUIO_NOSUBTITLES, GUIO_NOSPEECH)
+	},
+	kGameTypeWeen,
+	kFeaturesAdLib,
+	0, 0, 0
+},
+{ // Bugreport #11524
+	{
+		"ween",
+		"",
+		AD_ENTRY1s("intro.stk", "cae57980940b919305e33a65d0f1dcc3", 7017982),
 		FR_FRA,
 		kPlatformDOS,
 		ADGF_NO_FLAGS,
@@ -97,7 +111,7 @@
 	kFeaturesAdLib,
 	0, 0, 0
 },
-{ // Supplied by glorfindel in bugreport #1722142
+{ // Supplied by glorfindel in bugreport #3193
 	{
 		"ween",
 		"",
@@ -114,7 +128,7 @@
 
 // -- Amiga --
 
-{ // Supplied by vampir_raziel in bug report #1658373
+{ // Supplied by vampir_raziel in bug report #3055
 	{
 		"ween",
 		"",
@@ -129,7 +143,7 @@
 	kFeaturesNone,
 	0, 0, 0
 },
-{ // Supplied by vampir_raziel in bug report #1658373
+{ // Supplied by vampir_raziel in bug report #3055
 	{
 		"ween",
 		"",
@@ -143,7 +157,7 @@
 	kFeaturesNone,
 	0, 0, 0
 },
-{ // Supplied by vampir_raziel in bug report #1658373
+{ // Supplied by vampir_raziel in bug report #3055
 	{
 		"ween",
 		"",
@@ -157,7 +171,7 @@
 	kFeaturesNone,
 	0, 0, 0
 },
-{ // Supplied by vampir_raziel in bug report #1658373
+{ // Supplied by vampir_raziel in bug report #3055
 	{
 		"ween",
 		"",
@@ -171,7 +185,7 @@
 	kFeaturesNone,
 	0, 0, 0
 },
-{ // Supplied by goodoldgeorg in bug report #2563539
+{ // Supplied by goodoldgeorg in bug report #4139
 	{
 		"ween",
 		"",
@@ -187,9 +201,24 @@
 	0, 0, 0
 },
 
+{ // Supplied by CaptainHIT in bug report #11591
+	{
+		"ween",
+		"",
+		AD_ENTRY1s("intro.stk", "53c57051c69c641fcc5270a41d35e7d5", 458536),
+		ES_ESP,
+		kPlatformAmiga,
+		ADGF_NO_FLAGS,
+		GUIO2(GUIO_NOSUBTITLES, GUIO_NOSPEECH)
+	},
+	kGameTypeWeen,
+	kFeaturesNone,
+	0, 0, 0
+},
+
 // -- Atari ST --
 
-{ // Supplied by pwigren in bug report #1764174
+{ // Supplied by pwigren in bug report #3355
 	{
 		"ween",
 		"",

@@ -24,6 +24,7 @@
 #define GRAPHICS_SURFACE_H
 
 #include "common/scummsys.h"
+#include "common/endian.h"
 #include "common/list.h"
 
 namespace Common {
@@ -44,18 +45,13 @@ namespace Graphics {
  * @{
  */
 
+struct TransformStruct;
+
 /**
  * An arbitrary graphics surface that can be the target (or source) of blit
  * operations, font rendering, etc.
  */
 struct Surface {
-	/*
-	 * IMPORTANT implementation-specific detail:
-	 *
-	 * ARM code relies on the layout of the first 3 of these fields. Do not
-	 * change them.
-	 */
-
 	/**
 	 * Width of the surface.
 	 */
@@ -140,6 +136,47 @@ public:
 	 */
 	inline void *getBasePtr(int x, int y) {
 		return static_cast<byte *>(pixels) + y * pitch + x * format.bytesPerPixel;
+	}
+
+	/**
+	 * Return the pixel at the specified point.
+	 *
+	 * @param x  The x coordinate of the pixel.
+	 * @param y  The y coordinate of the pixel.
+	 *
+	 * @return The value of the pixel.
+	 */
+	inline uint32 getPixel(int x, int y) const {
+		assert(format.bytesPerPixel > 0 && format.bytesPerPixel <= 4);
+		if (format.bytesPerPixel == 1)
+			return *((const uint8 *)getBasePtr(x, y));
+		else if (format.bytesPerPixel == 2)
+			return *((const uint16 *)getBasePtr(x, y));
+		else if (format.bytesPerPixel == 3)
+			return READ_UINT24(getBasePtr(x, y));
+		else if (format.bytesPerPixel == 4)
+			return *((const uint32 *)getBasePtr(x, y));
+		else
+			return 0;
+	}
+
+	/**
+	 * Set the pixel at the specified point.
+	 *
+	 * @param x     The x coordinate of the pixel.
+	 * @param y     The y coordinate of the pixel.
+	 * @param pixel The value of the pixel.
+	 */
+	inline void setPixel(int x, int y, int pixel) {
+		assert(format.bytesPerPixel > 0 && format.bytesPerPixel <= 4);
+		if (format.bytesPerPixel == 1)
+			*((uint8 *)getBasePtr(x, y)) = pixel;
+		else if (format.bytesPerPixel == 2)
+			*((uint16 *)getBasePtr(x, y)) = pixel;
+		else if (format.bytesPerPixel == 3)
+			WRITE_UINT24(getBasePtr(x, y), pixel);
+		else if (format.bytesPerPixel == 4)
+			*((uint32 *)getBasePtr(x, y)) = pixel;
 	}
 
 	/**
@@ -367,6 +404,34 @@ public:
 	 */
 	Graphics::Surface *scale(uint16 newWidth, uint16 newHeight, bool filtering = false) const;
 
+	/**
+	 * @brief Rotoscale function; this returns a transformed version of this surface after rotation and
+	 * scaling. Please do not use this if angle == 0, use plain old scaling function.
+	 *
+	 * The client code must call @ref free on the returned surface and then delete
+	 * it.
+	 *
+	 * @param transform a TransformStruct wrapping the required info. @see TransformStruct
+	 * @param filtering Whether or not to use bilinear filtering.
+	 *
+	 */
+	Graphics::Surface *rotoscale(const TransformStruct &transform, bool filtering = false) const;
+
+	/**
+	 * Print surface content on console in pseudographics
+	 *
+	 * @param debuglevel debug level to print at, default is 0.
+	 * @param width width of the printed area in pixels. Default is 0 which is whole surface.
+	 * @param height height of the printed area in pixels. Default is 0 which is whole surface.
+	 * @param x horizontal offset to the print area. Default is 0.
+	 * @param y vertical offset to the print area. Default is 0.
+	 * @param scale number of pixels per single character. Default is -1, fit whole surface to maxwidth
+	 * @param maxwidth horizontal size of the print out in characters. Default is 160. Note that 2 characters
+	 *                 are taken by the frame
+	 * @param palette ˚palette to use for 1bpp pixels. If omitted, we assume grayscale palette
+	 *
+	 */
+	void debugPrint(int debuglevel = 0, int width = 0, int height = 0, int x = 0, int y = 0, int scale = -1, int maxwidth = 160, const byte *palette = NULL) const;
 };
 
 /**

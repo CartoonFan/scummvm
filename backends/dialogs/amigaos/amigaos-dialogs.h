@@ -23,7 +23,7 @@
 #ifndef BACKEND_AMIGAOS_DIALOGS_H
 #define BACKEND_AMIGAOS_DIALOGS_H
 
-#if defined(__amigaos4__) && defined(USE_SYSDIALOGS) 
+#if defined(__amigaos4__) && defined(USE_SYSDIALOGS)
 
 #include "common/dialogs.h"
 #include "common/fs.h"
@@ -31,9 +31,6 @@
 class AmigaOSDialogManager : public Common::DialogManager {
 public:
 	virtual DialogResult showFileBrowser(const Common::U32String &title, Common::FSNode &choice, bool isDirBrowser);
-
-private:
-	char *utf8ToLocal(const char *in);
 };
 
 #endif

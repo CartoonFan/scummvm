@@ -64,6 +64,11 @@ GfxCursor::GfxCursor(ResourceManager *resMan, GfxPalette *palette, GfxScreen *sc
 	else
 		_useOriginalKQ6WinCursors = false;
 
+	if (g_sci && g_sci->getGameId() == GID_SQ4 && g_sci->getPlatform() == Common::kPlatformWindows)
+		_useOriginalSQ4WinCursors = ConfMan.getBool("windows_cursors");
+	else
+		_useOriginalSQ4WinCursors = false;
+
 	if (g_sci && g_sci->getGameId() == GID_SQ4 && getSciVersion() == SCI_VERSION_1_1)
 		_useSilverSQ4CDCursors = ConfMan.getBool("silver_cursors");
 	else
@@ -138,10 +143,10 @@ void GfxCursor::kernelSetShape(GuiResourceId resourceId) {
 	colorMapping[2] = SCI_CURSOR_SCI0_TRANSPARENCYCOLOR;
 	colorMapping[3] = _palette->matchColor(170, 170, 170) & SCI_PALETTE_MATCH_COLORMASK; // Grey
 	// TODO: Figure out if the grey color is hardcoded
-	// HACK for the magnifier cursor in LB1, fixes its color (bug #3487092)
+	// HACK for the magnifier cursor in LB1, fixes its color (bug #5971)
 	if (g_sci->getGameId() == GID_LAURABOW && resourceId == 1)
 		colorMapping[3] = _screen->getColorWhite();
-	// HACK for Longbow cursors, fixes the shade of grey they're using (bug #3489101)
+	// HACK for Longbow cursors, fixes the shade of grey they're using (bug #5983)
 	if (g_sci->getGameId() == GID_LONGBOW)
 		colorMapping[3] = _palette->matchColor(223, 223, 223) & SCI_PALETTE_MATCH_COLORMASK; // Light Grey
 
@@ -214,6 +219,9 @@ void GfxCursor::kernelSetView(GuiResourceId viewNum, int loopNum, int celNum, Co
 		default:
 			break;
 		}
+	} else if (_useOriginalSQ4WinCursors) {
+		// Use the Windows black and white cursors
+		celNum += 1;
 	}
 
 	if (!_cachedCursors.contains(viewNum))

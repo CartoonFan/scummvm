@@ -37,7 +37,7 @@ struct BirdInfo {
 	const char *_interceptAnim;
 	const char *_shootAnim;
 	int _birdShootWidth;
-	int _birdShootHeight;	
+	int _birdShootHeight;
 
 	Common::Point getBirdSize() const {
 		return Common::Point(_birdWidth, _birdHeight);
@@ -57,7 +57,7 @@ static const TranscribedSound fakePhilReplics[] = {
 };
 
 static const BirdInfo birdInfo[] = {
-	{		
+	{
 		10,
 		"v7220bh2",
 		151, 111,
@@ -194,7 +194,7 @@ void Bird::makeFlightParams() {
 	}
 
 	_flightLengthMs = _flightLengthFrames * 100;
-		
+
 	_attractor1 = Common::Point(
 		rnd.getRandomNumberRngSigned(-600, 600),
 		rnd.getRandomNumberRngSigned(-600, 600));
@@ -316,7 +316,7 @@ void Illusion::enterIllusion(int level) {
 	for (unsigned i = 0; i < 6; i++)
 		room->enableHotzone(Common::String::format("Phil%d", i));
 	room->playAnimWithSpeech(Common::String::format("v7220bg%d", g_vm->getRnd().getRandomNumberRng(0, 5)),
-				 TranscribedSound("v7220xc1",
+				 TranscribedSound::make("v7220xc1",
 						  "It's me, Phil. These beasts are all that stands between me and freedom"), 600, // unclear
 				 PlayAnimParams::disappear(),
 				 15306);
@@ -360,10 +360,10 @@ void Illusion::handleEvent(int eventId) {
 		launchBird();
 		break;
 	case 15307:
-		room->playSpeech(TranscribedSound("v7220wg0", "Oh no, we're gonna fry"), 15308);
+		room->playSpeech(TranscribedSound::make("v7220wg0", "Oh no, we're gonna fry"), 15308);
 		break;
 	case 15308:
-		room->playSpeech(TranscribedSound("v7220wh0", "Let's get outta here"), 15309);
+		room->playSpeech(TranscribedSound::make("v7220wh0", "Let's get outta here"), 15309);
 		break;
 	case 15309:
 		g_vm->getCurrentHandler()->handleEvent(15383);

@@ -204,7 +204,7 @@ public:
 		}
 		case 22009:
 			room->playVideo("PhilQuickNameThatTune", 0);
-			break;			
+			break;
 		case 22012:
 			room->playVideo("PhilWowLowOnTroops", 0);
 			break;
@@ -212,7 +212,7 @@ public:
 			room->playSFX("SndGuardTrapDoorOpen", 22017);
 			break;
 		case 22017:
-			room->playSpeech(TranscribedSound("SndGuardLaugh", "[laughter]"), 22018);
+			room->playSpeech(TranscribedSound::make("SndGuardLaugh", "[laughter]"), 22018);
 			break;
 		case 22018:
 			room->playSpeech(
@@ -281,7 +281,7 @@ public:
 			room->playSpeech(painSounds[persistent->_catacombLevel]);
 			return;
 		}
-		
+
 		if (level == 0)
 			room->loadHotZones("CaDecode.HOT", false);
 		room->playMusicLoop("T3010eA0");
@@ -440,7 +440,7 @@ private:
 			room->disableMouse();
 			g_vm->cancelTimer(22007);
 			persistent->_catacombPainAndPanic = true;
-			g_vm->moveToRoom(kCatacombsRoom);			
+			g_vm->moveToRoom(kCatacombsRoom);
 			break;
 		}
 	}

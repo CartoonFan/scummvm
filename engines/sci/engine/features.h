@@ -235,7 +235,7 @@ public:
 	MoveCountType detectMoveCountType();
 
 	int detectPlaneIdBase();
-	
+
 	bool handleMoveCount() { return detectMoveCountType() == kIncrementMoveCount; }
 
 	bool usesCdTrack() { return _usesCdTrack; }
@@ -257,6 +257,8 @@ public:
 	 * selected a MIDI output device
 	 */
 	void forceDOSTracks() { _forceDOSTracks = true; }
+
+	bool useWindowsCursors() { return _useWindowsCursors; }
 
 	/**
 	 * Autodetects, if Pseudo Mouse ability is enabled (different behavior in keyboard driver)
@@ -285,6 +287,7 @@ private:
 	MoveCountType _moveCountType;
 	bool _usesCdTrack;
 	bool _forceDOSTracks;
+	bool _useWindowsCursors;
 
 	PseudoMouseAbilityType _pseudoMouseAbility;
 

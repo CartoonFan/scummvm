@@ -55,7 +55,7 @@ static const int kDefaultSpeed = 100;
 
 class Renderable {
 public:
-        Renderable(Common::Array<PodImage> images);
+		Renderable(Common::Array<PodImage> images);
 	const PodImage &getFrame(int time);
 	void startAnimation(int startms, int msperframe,
 			    bool loop, int first, int last);
@@ -148,14 +148,11 @@ struct TranscribedSound {
 	const char *soundName;
 	const char *transcript;
 
-	TranscribedSound(const char *s, const char *t) {
-		soundName = s;
-		transcript = t;
-	}
-
-	TranscribedSound() {
-		soundName = nullptr;
-		transcript = nullptr;
+	static TranscribedSound make(const char *s, const char *t) {
+		TranscribedSound res;
+		res.soundName = s;
+		res.transcript = t;
+		return res;
 	}
 };
 
@@ -214,7 +211,7 @@ public:
 			     PlayAnimParams params,
 			     EventHandlerWrapper callbackEvent = EventHandlerWrapper(),
 			     Common::Point offset = Common::Point(0, 0));
-    	void playAnimWithMusic(const LayerId &animName,
+		void playAnimWithMusic(const LayerId &animName,
 			       const Common::String &soundName,
 			       int zValue,
 			       PlayAnimParams params,
@@ -283,7 +280,7 @@ public:
 				  Common::Point centerPos, int zVal, int fontDelta = 0, const Common::String &extraId = "letter");
 	void hideString(const Common::String &font, size_t maxLen, const Common::String &extraId = "letter");
 	int computeStringWidth(const Common::String &font, const Common::U32String &str, int fontDelta = 0);
-	
+
 	// Misc
 	void playSFX(const Common::String &soundName,
 		     EventHandlerWrapper callbackEvent = EventHandlerWrapper());

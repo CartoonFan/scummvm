@@ -22,6 +22,10 @@
 
 namespace Ultima {
 
+#define GAMEOPTION_ORIGINAL_SAVELOAD GUIO_GAMEOPTIONS1
+
+#define GUI_OPTIONS_ULTIMA8	GUIO2(GUIO_NOMIDI, GAMEOPTION_ORIGINAL_SAVELOAD)
+
 static const UltimaGameDescription GAME_DESCRIPTIONS[] = {
 #ifndef RELEASE_BUILD
 	{
@@ -168,6 +172,22 @@ static const UltimaGameDescription GAME_DESCRIPTIONS[] = {
 		GF_VGA_ENHANCED
 	},
 
+	// Ultima VI - German Patch 1.6 https://sirjohn.de/ultima-6/
+	// Note: Not all user interface elements are translated in ScummVM
+	{
+		{
+			"ultima6",
+			0,
+			AD_ENTRY1s("converse.a", "5242f0228bbc9c3a60c7aa6071499688", 198797),
+			Common::DE_DEU,
+			Common::kPlatformDOS,
+			ADGF_NO_FLAGS,
+			GUIO0()
+		},
+		GAME_ULTIMA6,
+		0
+	},
+
 	// PC98 Ultima 6
 	{
 		{
@@ -248,7 +268,7 @@ static const UltimaGameDescription GAME_DESCRIPTIONS[] = {
 			Common::EN_ANY,
 			Common::kPlatformDOS,
 			ADGF_NO_FLAGS,
-			GUIO1(GUIO_NOMIDI)
+			GUI_OPTIONS_ULTIMA8
 		},
 		GAME_ULTIMA8,
 		0
@@ -263,7 +283,7 @@ static const UltimaGameDescription GAME_DESCRIPTIONS[] = {
 			Common::EN_ANY,
 			Common::kPlatformDOS,
 			ADGF_NO_FLAGS,
-			GUIO1(GUIO_NOMIDI)
+			GUI_OPTIONS_ULTIMA8
 		},
 		GAME_ULTIMA8,
 		0
@@ -278,7 +298,7 @@ static const UltimaGameDescription GAME_DESCRIPTIONS[] = {
 			Common::EN_ANY,
 			Common::kPlatformDOS,
 			ADGF_NO_FLAGS,
-			GUIO1(GUIO_NOMIDI)
+			GUI_OPTIONS_ULTIMA8
 		},
 		GAME_ULTIMA8,
 		0
@@ -292,7 +312,7 @@ static const UltimaGameDescription GAME_DESCRIPTIONS[] = {
 			Common::FR_FRA,
 			Common::kPlatformDOS,
 			ADGF_NO_FLAGS,
-			GUIO1(GUIO_NOMIDI)
+			GUI_OPTIONS_ULTIMA8
 		},
 		GAME_ULTIMA8,
 		0
@@ -306,7 +326,7 @@ static const UltimaGameDescription GAME_DESCRIPTIONS[] = {
 			Common::DE_DEU,
 			Common::kPlatformDOS,
 			ADGF_NO_FLAGS,
-			GUIO1(GUIO_NOMIDI)
+			GUI_OPTIONS_ULTIMA8
 		},
 		GAME_ULTIMA8,
 		0
@@ -321,7 +341,7 @@ static const UltimaGameDescription GAME_DESCRIPTIONS[] = {
 			Common::DE_DEU,
 			Common::kPlatformDOS,
 			ADGF_NO_FLAGS,
-			GUIO1(GUIO_NOMIDI)
+			GUI_OPTIONS_ULTIMA8
 		},
 		GAME_ULTIMA8,
 		0
@@ -335,7 +355,7 @@ static const UltimaGameDescription GAME_DESCRIPTIONS[] = {
 			Common::ES_ESP,
 			Common::kPlatformDOS,
 			ADGF_NO_FLAGS,
-			GUIO1(GUIO_NOMIDI)
+			GUI_OPTIONS_ULTIMA8
 		},
 		GAME_ULTIMA8,
 		0
@@ -349,7 +369,7 @@ static const UltimaGameDescription GAME_DESCRIPTIONS[] = {
 			Common::JA_JPN,
 			Common::kPlatformDOS,
 			ADGF_NO_FLAGS,
-			GUIO1(GUIO_NOMIDI)
+			GUI_OPTIONS_ULTIMA8
 		},
 		GAME_ULTIMA8,
 		0
@@ -394,6 +414,21 @@ static const UltimaGameDescription GAME_DESCRIPTIONS[] = {
 			"remorse",
 			"",
 			AD_ENTRY1s("eusecode.flx", "36a16d70c97d0379f1133cc743c31313", 558493),
+			Common::ES_ESP,
+			Common::kPlatformDOS,
+			ADGF_UNSTABLE,
+			GUIO1(GUIO_NOMIDI)
+		},
+		GAME_CRUSADER_REM,
+		0
+	},
+
+	// Crusader - No Remorse (Spanish fan patch) provided by Wesker
+	{
+		{
+			"remorse",
+			"Fan Translation",
+			AD_ENTRY1s("eusecode.flx", "a8b5c421c5d74be8c69fcd4fecadd1dd", 559015),
 			Common::ES_ESP,
 			Common::kPlatformDOS,
 			ADGF_UNSTABLE,

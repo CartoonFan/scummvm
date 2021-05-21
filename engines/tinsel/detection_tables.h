@@ -73,7 +73,7 @@ static const TinselGameDescription gameDescriptions[] = {
 		TINSEL_V1,
 	},
 
-	{	// Macintosh CD Demo V1 version, with *.scn files, see tracker #3110936
+	{	// Macintosh CD Demo V1 version, with *.scn files, see tracker #5517
 		{
 			"dw",
 			"CD Demo",
@@ -378,7 +378,7 @@ static const TinselGameDescription gameDescriptions[] = {
 					   "english.smp", NULL, -1),
 			Common::EN_ANY,
 			Common::kPlatformDOS,
-			ADGF_CD | ADGF_UNSTABLE,
+			ADGF_CD,
 			GUIO0()
 		},
 		GID_DW1,
@@ -477,7 +477,7 @@ static const TinselGameDescription gameDescriptions[] = {
 		TINSEL_V1,
 	},
 
-	{	// Mac English CD, see tracker #3614864
+	{	// Mac English CD, see tracker #6384
 		{
 			"dw",
 			"CD",

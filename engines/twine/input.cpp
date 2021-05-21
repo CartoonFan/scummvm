@@ -25,7 +25,7 @@
 #include "common/events.h"
 #include "common/keyboard.h"
 #include "common/system.h"
-#include "twine/actor.h"
+#include "twine/scene/actor.h"
 #include "twine/twine.h"
 
 namespace TwinE {
@@ -33,6 +33,7 @@ namespace TwinE {
 const char *mainKeyMapId = "mainKeyMap";
 const char *uiKeyMapId = "uiKeyMap";
 const char *cutsceneKeyMapId = "cutsceneKeyMap";
+const char *holomapKeyMapId = "holomapKeyMap";
 
 ScopedKeyMap::ScopedKeyMap(TwinEEngine* engine, const char *id) : _engine(engine) {
 	_changed = _engine->_input->enableAdditionalKeyMap(id, true);
@@ -67,6 +68,7 @@ bool Input::toggleAbortAction() {
 	abortState |= toggleActionIfActive(TwinEActionType::CutsceneAbort);
 	abortState |= toggleActionIfActive(TwinEActionType::UIAbort);
 	abortState |= toggleActionIfActive(TwinEActionType::Escape);
+	abortState |= toggleActionIfActive(TwinEActionType::HolomapAbort);
 	return abortState;
 }
 
@@ -80,6 +82,10 @@ bool Input::isMoveOrTurnActionActive() const {
 
 bool Input::isHeroActionActive() const {
 	return isActionActive(TwinEActionType::ExecuteBehaviourAction) || isActionActive(TwinEActionType::SpecialAction);
+}
+
+bool Input::resetHeroActions() {
+	return toggleActionIfActive(TwinEActionType::ExecuteBehaviourAction) || toggleActionIfActive(TwinEActionType::SpecialAction);
 }
 
 bool Input::enableAdditionalKeyMap(const char *id, bool enable) {
@@ -102,7 +108,7 @@ void Input::enableKeyMap(const char *id) {
 	const Common::KeymapArray &keymaps = keymapper->getKeymaps();
 	for (Common::Keymap *keymap : keymaps) {
 		const Common::String& keymapId = keymap->getId();
-		if (keymapId == mainKeyMapId || keymapId == uiKeyMapId || keymapId == cutsceneKeyMapId) {
+		if (keymapId == mainKeyMapId || keymapId == uiKeyMapId || keymapId == cutsceneKeyMapId || keymapId == holomapKeyMapId) {
 			keymap->setEnabled(keymapId == id);
 		}
 	}

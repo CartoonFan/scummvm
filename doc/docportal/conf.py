@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'ScummVM Documentation'
-copyright = '2020, CadiH'
+copyright = '2020, 2021, CadiH'
 author = 'CadiH'
 
 
@@ -31,13 +31,13 @@ author = 'CadiH'
 import sphinx_rtd_theme
 
 extensions = [
-    
+
     "sphinx_rtd_theme",
-    "recommonmark",
-    "sphinx_panels"
+    "sphinx_panels",
+    "m2r2"
 ]
 extensions.append('sphinx_tabs.tabs')
-
+souce_suffix = ['.rst','.md']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -64,6 +64,8 @@ html_theme_options = {
 
 
 html_static_path = ['_static']
+
+html_js_files = ['version.js']
 
 html_extra_path = ['images/donate/ppdonate.png','images/donate/GOG_button_small.png']
 html_favicon = 'scummvm.ico'
@@ -95,4 +97,3 @@ latex_elements = {
     ''',
 
 }
-

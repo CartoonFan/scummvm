@@ -195,7 +195,7 @@ enum ItemFlag {
 #define WORD_TYPE_NOUN 0x40
 #define WORD_TYPE_NOUN_PLURAL 0x80
 #define WORD_TYPE_NOUN_MASK (WORD_TYPE_FEMALE | WORD_TYPE_MALE | \
-                             WORD_TYPE_NOUN | WORD_TYPE_NOUN_PLURAL)
+							 WORD_TYPE_NOUN | WORD_TYPE_NOUN_PLURAL)
 
 struct FunctionState {
 	bool _testResult;
@@ -327,7 +327,7 @@ struct StringFile {
 	uint32 _endOffset;
 
 	StringFile() : _baseOffset(0), _endOffset(0) {
-	} 
+	}
 	StringFile(const char *fname, uint32 baseOfs = 0, uint32 endO = 0) :
 		_filename(fname), _baseOffset(baseOfs), _endOffset(endO) {
 	}

@@ -39,15 +39,11 @@ namespace Graphics {
  * @{
  */
 
-class Font;
-
 /**
  * A derived graphics surface, which supports automatically managing the allocated
  * surface data block and introduces several new blitting methods.
  */
 class ManagedSurface {
-	/** See @ref Font. */
-	friend class Font;
 private:
 	/**
 	 * The Graphics::Surface that the managed surface encapsulates.
@@ -86,16 +82,10 @@ private:
 	bool _paletteSet;
 protected:
 	/**
-	 * Base method that descendant classes can override for recording the affected
-	 * dirty areas of the surface.
-	 */
-	virtual void addDirtyRect(const Common::Rect &r);
-
-	/**
 	 * Inner method for blitting.
 	 */
 	void blitFromInner(const Surface &src, const Common::Rect &srcRect,
-		const Common::Point &destPos, const uint32 *palette);
+		const Common::Rect &destRect, const uint32 *srcPalette);
 
 	/**
 	 * Inner method for copying another surface into this one at a given destination position.
@@ -144,6 +134,19 @@ public:
 	ManagedSurface(ManagedSurface &surf, const Common::Rect &bounds);
 
 	/**
+	 * Create a managed surface from plain Surface.
+	 *
+	 * If disposeAfterUse flag is set (default), the surface will reuse all structures
+	 * from the surface and destroy it, otherwise it will make a copy.
+	 */
+	ManagedSurface(Surface *surf, DisposeAfterUse::Flag disposeAfterUse = DisposeAfterUse::YES);
+
+	/**
+	 * Create a managed surface from plain Surface.
+	 */
+	ManagedSurface(const Surface *surf);
+
+	/**
 	 * Destroy the managed surface.
 	 */
 	virtual ~ManagedSurface();
@@ -156,14 +159,16 @@ public:
 	 * directly to it, since it would bypass dirty rect handling.
 	 */
 	operator const Surface &() const { return _innerSurface; }
+
 	/**
-	 * Automatically convert to a Graphics::Surface by
-	 * simply returning the inner surface.
+	 * Return the underlying Graphics::Surface
 	 *
-	 * This must be const, because changes are not supposed to be done
-	 * directly to it, since it would bypass dirty rect handling.
+	 * If a caller uses the non-const surfacePtr version and changes
+	 * the surface, they'll be responsible for calling addDirtyRect
+	 * for any affected area
 	 */
 	const Surface &rawSurface() const { return _innerSurface; }
+	Surface *surfacePtr() { return &_innerSurface; }
 
 	/**
 	 * Reassign one managed surface to another one.
@@ -181,6 +186,29 @@ public:
 	 * Return true if the surface manages its own pixels.
 	 */
 	DisposeAfterUse::Flag disposeAfterUse() const { return _disposeAfterUse; }
+
+	/**
+	 * Return the pixel at the specified point.
+	 *
+	 * @param x  The x coordinate of the pixel.
+	 * @param y  The y coordinate of the pixel.
+	 *
+	 * @return The value of the pixel.
+	 */
+	inline uint32 getPixel(int x, int y) const {
+		return _innerSurface.getPixel(x, y);
+	}
+
+	/**
+	 * Set the pixel at the specified point.
+	 *
+	 * @param x     The x coordinate of the pixel.
+	 * @param y     The y coordinate of the pixel.
+	 * @param pixel The value of the pixel.
+	 */
+	inline void setPixel(int x, int y, uint32 pixel) {
+		return _innerSurface.setPixel(x, y, pixel);
+	}
 
 	/**
 	 * Return a pointer to the pixel at the specified point.
@@ -252,6 +280,12 @@ public:
 	virtual void clearDirtyRects() {}
 
 	/**
+	 * Base method that descendant classes can override for recording the affected
+	 * dirty areas of the surface.
+	 */
+	virtual void addDirtyRect(const Common::Rect &r);
+
+	/**
 	 * When the managed surface is a subsection of a parent surface, return the
 	 * the offset in the parent surface where the managed surface starts at.
 	 */
@@ -279,6 +313,18 @@ public:
 	 */
 	void blitFrom(const Surface &src, const Common::Rect &srcRect,
 		const Common::Point &destPos);
+
+	/**
+	 * Copy another surface into this one at a given destination area and perform the potential scaling.
+	 */
+	void blitFrom(const Surface &src, const Common::Rect &srcRect,
+		const Common::Rect &destRect);
+
+	/**
+	 * Copy another surface into this one at a given destination area and perform the potential scaling.
+	 */
+	void blitFrom(const ManagedSurface &src, const Common::Rect &srcRect,
+		const Common::Rect &destRect);
 
 	/**
 	 * Copy another surface into this one.
@@ -449,6 +495,15 @@ public:
 		const Surface *mask = nullptr, bool maskOnly = false);
 
 	/**
+	 * Does a blitFrom ignoring any transparency settings
+	 */
+	void rawBlitFrom(const Surface &src, const Common::Rect &srcRect,
+			const Common::Point &destPos, const uint32 *palette) {
+		blitFromInner(src, srcRect, Common::Rect(destPos.x, destPos.y,
+			destPos.x + srcRect.width(), destPos.y + srcRect.height()), palette);
+	}
+
+	/**
 	 * Clear the entire surface.
 	 */
 	void clear(uint color = 0);
@@ -481,6 +536,12 @@ public:
 	 * surface to match the dimensions of the passed surface.
 	 */
 	void copyFrom(const ManagedSurface &surf);
+
+	/**
+	 * Copy the data from another surface, reinitializing the
+	 * surface to match the dimensions of the passed surface.
+	 */
+	void copyFrom(const Surface &surf);
 
 	/**
 	 * Draw a line.
@@ -549,7 +610,7 @@ public:
 	 * @param dstFormat  The desired format.
 	 * @param palette    The palette (in RGB888), if the source format has a bpp of 1.
 	 */
-	void convertToInPlace(const PixelFormat &dstFormat, const byte *palette = 0) {
+	void convertToInPlace(const PixelFormat &dstFormat, const byte *palette = nullptr) {
 		_innerSurface.convertToInPlace(dstFormat, palette);
 	}
 

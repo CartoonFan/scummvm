@@ -71,7 +71,7 @@ struct AnimFrame {
 	}
 
 	// Note: The next 3 functions each have a 4-bit
-	// signed value to unpack from the flags.
+	// value to unpack from the flags. x/y are signed, z is unsigned.
 	inline int cru_attackx() const {
 		uint32 rawx = (_flags & 0x00000780) << 5;
 		int16  signedx = static_cast<int16>(rawx) >> 12;
@@ -84,8 +84,7 @@ struct AnimFrame {
 	}
 
 	inline int cru_attackz() const {
-		uint32 rawz = (_flags & 0x0F000000) >> 20;
-		return static_cast<int8>(rawz) / 2;
+		return (_flags & 0x0F000000) >> 21;
 	}
 
 	inline bool is_cruattack() const {
@@ -140,6 +139,10 @@ public:
 		return (_flags & mask) != 0;
 	}
 
+	uint32 getFlags() const {
+		return _flags;
+	}
+
 	const AnimFrame &getFrame(Direction dir, unsigned int frameno) const;
 
 	/**
@@ -152,22 +155,22 @@ public:
 	enum AnimActionFlags {
 		AAF_NONE		 = 0x0000,
 		AAF_TWOSTEP      = 0x0001,
-		AAF_ATTACK       = 0x0002, // U8 only
+		AAF_ATTACK       = 0x0002, // U8 only? also present in crusader, but ignored.
 		AAF_LOOPING      = 0x0004,
 		AAF_UNSTOPPABLE  = 0x0008,
 		AAF_LOOPING2_U8  = 0x0010,
 		AAF_ENDLOOP_U8   = 0x0020, // TODO: This starts a new anim at the end if pathfinding
 		AAF_ENDLOOP_CRU  = 0x0040, // TODO: This starts a new anim at the end if pathfinding
 		AAF_HANGING      = 0x0080,
-		AAF_ROTATED      = 0x1000, // Cru only
 		AAF_16DIRS       = 0x4000, // Cru only
 		AAF_DESTROYACTOR = 0x8000, // destroy actor after animation finishes
+		AAF_ROTATED     = 0x10000, // Cru only
 		AAF_COMMONFLAGS  = (AAF_TWOSTEP | AAF_LOOPING | AAF_UNSTOPPABLE | AAF_HANGING | AAF_DESTROYACTOR)
 	};
 
 
 private:
-	static AnimActionFlags loadAnimActionFlags(uint16 rawflags);
+	static AnimActionFlags loadAnimActionFlags(uint32 rawflags);
 
 	uint32 _shapeNum;
 	uint32 _action;

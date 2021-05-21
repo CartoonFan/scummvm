@@ -440,7 +440,7 @@ public:
 			if (room->isMouseEnabled()) {
 				room->stopAnim(kOdysseusWithMessage);
 				room->playVideo("t2140bc0", kOdysseusZ, 10048, Common::Point(650, 17));
-			} 
+			}
 			break;
 		case 10048:
 			room->playAnimLoop(kOdysseusWithMessage, kOdysseusZ, Common::Point(800, 0));
@@ -475,7 +475,7 @@ public:
 			break;
 		case 10057:
 			room->playSpeech(
-				TranscribedSound("T2240wA0", "Official orders from king Priam: messenger is granted permissions to leave the city walls"), 10058);
+				TranscribedSound::make("T2240wA0", "Official orders from king Priam: messenger is granted permissions to leave the city walls"), 10058);
 			break;
 		case 10058:
 			room->enableMouse();

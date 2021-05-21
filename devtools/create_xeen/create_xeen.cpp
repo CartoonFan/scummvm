@@ -24,7 +24,7 @@
 #define FORBIDDEN_SYMBOL_ALLOW_ALL
 
 // HACK to allow building with the SDL backend on MinGW
-// see bug #1800764 "TOOLS: MinGW tools building broken"
+// see bug #3412 "TOOLS: MinGW tools building broken"
 #ifdef main
 #undef main
 #endif // main
@@ -42,14 +42,21 @@
 #define VERSION_NUMBER 4
 
 void NORETURN_PRE error(const char *s, ...) {
-	fprintf(stderr, "%s\n", s);
+	va_list ap;
+
+	va_start(ap, s);
+	vfprintf(stderr, s, ap);
+	va_end(ap);
+
+	fputc('\n', stderr);
+
 	exit(1);
 }
 
 static void writeVersion(CCArchive &cc) {
 	Common::MemFile f;
 	f.writeLong(VERSION_NUMBER);
-	cc.add("VERSION", f);	
+	cc.add("VERSION", f);
 }
 
 int main(int argc, char *argv[]) {

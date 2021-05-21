@@ -420,7 +420,7 @@ void SagaEngine::loadStrings(StringsTable &stringsTable, const ByteArray &string
 		// In some rooms in IHNM, string offsets can be greater than the maximum value than a 16-bit integer can hold
 		// We detect this by checking the previous offset, and if it was bigger than the current one, an overflow
 		// occurred (since the string offsets are sequential), so we're adding the missing part of the number
-		// Fixes bug #1895205 - "IHNM: end game text/caption error"
+		// Fixes bug #3629 - "IHNM: end game text/caption error"
 		if (prevOffset > offset)
 			offset += 65536;
 		prevOffset = offset;
@@ -524,6 +524,13 @@ const char *SagaEngine::getTextString(int textStringId) {
 			break;
 	}
 
+	if (getLanguage() == Common::RU_RUS && textStringId == 43) {
+		if (getGameId() == GID_ITE)
+			return "\xCF\xF0\xE8\xEC\xE5\xED\xE8\xF2\xFC -> %s -> %s"; // "Применить -> %s -> %s"
+		else
+			return "\xC8\xF1\xEF\xEE\xEB\xFC\xE7\xEE\xE2\xE0\xF2\xFC %s >> %s"; // "Использовать %s >> %s"
+	}
+
 	string = ITEinterfaceTextStrings[lang][textStringId];
 	if (!string)
 		string = ITEinterfaceTextStrings[0][textStringId];
@@ -595,7 +602,7 @@ ColorId SagaEngine::KnownColor2ColorId(KnownColor knownColor) {
 #ifdef ENABLE_IHNM
 	} else if (getGameId() == GID_IHNM) {
 		// The default colors in the Spanish, version of IHNM are shifted by one
-		// Fixes bug #1848016 - "IHNM: Wrong Subtitles Color (Spanish)". This
+		// Fixes bug #3498 - "IHNM: Wrong Subtitles Color (Spanish)". This
 		// also applies to the German and French versions (bug #7064 - "IHNM:
 		// text mistake in german version").
 		int offset = (getFeatures() & GF_IHNM_COLOR_FIX) ? 1 : 0;

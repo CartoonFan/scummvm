@@ -29,13 +29,10 @@
 #include "ultima/ultima8/graphics/main_shape_archive.h"
 #include "ultima/ultima8/graphics/anim_dat.h"
 #include "ultima/ultima8/world/actors/anim_action.h"
-#include "ultima/ultima8/misc/direction.h"
 #include "ultima/ultima8/misc/direction_util.h"
-#include "ultima/ultima8/graphics/shape_info.h"
 #include "ultima/ultima8/usecode/uc_list.h"
 #include "ultima/ultima8/world/loop_script.h"
 #include "ultima/ultima8/world/get_object.h"
-#include "ultima/ultima8/kernel/core_app.h"
 
 namespace Ultima {
 namespace Ultima8 {
@@ -60,7 +57,7 @@ AnimationTracker::~AnimationTracker() {
 
 
 bool AnimationTracker::init(const Actor *actor, Animation::Sequence action,
-                            Direction dir, const PathfindingState *state) {
+							Direction dir, const PathfindingState *state) {
 	assert(actor);
 	_actor = actor->getObjId();
 	uint32 shape = actor->getShape();
@@ -92,10 +89,8 @@ bool AnimationTracker::init(const Actor *actor, Animation::Sequence action,
 
 #ifdef WATCHACTOR
 	if (actor && actor->getObjId() == watchactor) {
-		pout << "AnimationTracker: playing action " << actionnum << " " << _startFrame << "-" << _endFrame
-		     << " (_animAction flags: " << Std::hex << _animAction->_flags
-		     << Std::dec << ")" << Std::endl;
-
+		debug(6, "AnimationTracker: playing action %d %d-%d (animAction flags: 0x04%x)",
+			  actionnum, _startFrame, _endFrame, _animAction->getFlags());
 	}
 #endif
 
@@ -168,9 +163,6 @@ void AnimationTracker::evaluateMaxAnimTravel(int32 &max_endx, int32 &max_endy, D
 bool AnimationTracker::step() {
 	if (_done) return false;
 
-	Actor *a = getActor(_actor);
-	assert(a);
-
 	if (_firstFrame)
 		_currentFrame = _startFrame;
 	else
@@ -179,11 +171,10 @@ bool AnimationTracker::step() {
 	if (_currentFrame == _endFrame) {
 		_done = true;
 
-		// toggle ACT_FIRSTSTEP flag if necessary
+		// toggle ACT_FIRSTSTEP flag if necessary. This is remembered
+		// between two-step animations.
 		if (_animAction->hasFlags(AnimAction::AAF_TWOSTEP))
 			_firstStep = !_firstStep;
-		else
-			_firstStep = true;
 
 		return false;
 	}
@@ -231,6 +222,9 @@ bool AnimationTracker::step() {
 	}
 
 	// determine footpad
+	Actor *a = getActor(_actor);
+	assert(a);
+
 	bool actorflipped = a->hasFlags(Item::FLG_FLIPPED);
 	int32 xd, yd, zd;
 	a->getFootpadWorld(xd, yd, zd);
@@ -239,6 +233,7 @@ bool AnimationTracker::step() {
 		xd = yd;
 		yd = t;
 	}
+
 	CurrentMap *cm = World::get_instance()->getCurrentMap();
 
 	// TODO: check if this step is allowed
@@ -282,7 +277,7 @@ bool AnimationTracker::step() {
 		// Do the sweep test
 		Std::list<CurrentMap::SweepItem> collisions;
 		Std::list<CurrentMap::SweepItem>::const_iterator it;
-		cm->sweepTest(start, end, dims, a->getShapeInfo()->_flags, a->getObjId(),
+		cm->sweepTest(start, end, dims, a->getShapeInfo()->_flags, _actor,
 		              false, &collisions);
 
 
@@ -346,20 +341,12 @@ bool AnimationTracker::step() {
 	}
 
 	if (!targetok || (f.is_onground() && !support)) {
-
-		// If on ground, try to adjust properly
+		// If on ground, try to adjust properly. Never do it for dead Crusader NPCs,
+		// as they don't get gravity and the death process gets stuck.
 		// TODO: Profile the effect of disabling this for pathfinding.
 		//       It shouldn't be necessary in that case, and may provide a
 		//       worthwhile speed-up.
-		if (f.is_onground() && zd > 8) {
-			if (is_crusader && !targetok && support) {
-				// Possibly trying to step onto an elevator platform which stops at a z slightly
-				// above the floor.  Re-scan with a small adjustment.
-				// This is a bit of a temporary hack to make navigation possible.. it "hurls"
-				// the avatar sometimes, so it needs fixing properly.
-				tz += 2;
-			}
-
+		if (f.is_onground() && zd > 8 && !(is_crusader && a->isDead())) {
 			targetok = cm->scanForValidPosition(tx, ty, tz, a, _dir,
 			                                    true, tx, ty, tz);
 
@@ -369,8 +356,10 @@ bool AnimationTracker::step() {
 			} else {
 #ifdef WATCHACTOR
 				if (a->getObjId() == watchactor) {
-					pout << "AnimationTracker: adjusted step: "
-					     << tx - (_x + dx) << "," << ty - (_y + dy) << "," << tz - (_z + dz)
+					pout << "AnimationTracker: adjusted step: x: "
+					     << tx << "," << _x << "," << dx << " y: "
+						 << ty << "," << _y << "," << dy << " z: "
+						 << tz << "," << _z << "," << dz
 					     << Std::endl;
 				}
 #endif
@@ -385,7 +374,7 @@ bool AnimationTracker::step() {
 
 #ifdef WATCHACTOR
 	if (a->getObjId() == watchactor) {
-		pout << "AnimationTracker: step (" << tx - _x << "," << ty - _y
+		pout << "AnimationTracker: step (" << _x << "," << _y << "," << _z << ") +("<< tx - _x << "," << ty - _y
 		     << "," << tz - _z << ")" << Std::endl;
 	}
 #endif
@@ -410,24 +399,9 @@ bool AnimationTracker::step() {
 		        a->getShapeInfo()->_flags,
 		        _actor, &support, 0);
 
-
 		if (!support) {
 			_unsupported = true;
 			return false;
-		} else {
-#if 0
-			// This check causes really weird behaviour when fall()
-			// doesn't make things fall off non-land items, so disabled for now
-
-			Item *supportitem = getItem(support);
-			assert(supportitem);
-			if (!supportitem->getShapeInfo()->is_land()) {
-//				pout << "Not land: "; supportitem->dumpInfo();
-				// invalid support
-				_unsupported = true;
-				return false;
-			}
-#endif
 		}
 	}
 
@@ -571,7 +545,7 @@ void AnimationTracker::updateActorFlags() {
 }
 
 void AnimationTracker::getInterpolatedPosition(int32 &x, int32 &y,
-                                               int32 &z, int fc) const {
+											   int32 &z, int fc) const {
 	int32 dx = _x - _prevX;
 	int32 dy = _y - _prevY;
 	int32 dz = _z - _prevZ;

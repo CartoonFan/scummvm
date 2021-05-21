@@ -281,7 +281,7 @@ void DefaultFont::textDrawRect(FontId fontId, const char *text, const Common::Re
 }
 
 int DefaultFont::translateChar(int charId) {
-	if (charId <= 127 || (_vm->getLanguage() == Common::RU_RUS && charId <= 254))
+	if (charId <= 127 || (_vm->getLanguage() == Common::RU_RUS && charId <= 255))
 		return charId;					// normal character
 	else
 		return _charMap[charId - 128];	// extended character
@@ -453,7 +453,7 @@ void DefaultFont::outFont(const FontStyle &drawFont, const char *text, size_t co
 			// It seems that this font mapping causes problems with non-english
 			// versions of IHNM, so it has been changed to apply for ITE only.
 			// It doesn't make any difference for the English version of IHNM.
-			// Fixes bug #1796045: "IHNM: Spanish font wrong".
+			// Fixes bug #3405: "IHNM: Spanish font wrong".
 			if (!(flags & kFontDontmap) && _vm->getGameId() == GID_ITE) {
 				if (_vm->getLanguage() != Common::IT_ITA) {
 					c_code = translateChar(c_code);

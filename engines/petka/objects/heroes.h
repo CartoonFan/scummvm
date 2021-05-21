@@ -25,6 +25,7 @@
 
 #include "common/ptr.h"
 #include "petka/objects/object.h"
+#include "petka/walk.h"
 
 namespace Petka {
 

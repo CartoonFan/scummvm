@@ -48,6 +48,7 @@ MODULE_OBJS += \
 	cloud/dropbox/dropboxcreatedirectoryrequest.o \
 	cloud/dropbox/dropboxinforequest.o \
 	cloud/dropbox/dropboxlistdirectoryrequest.o \
+	cloud/dropbox/dropboxtokenrefresher.o \
 	cloud/dropbox/dropboxuploadrequest.o \
 	cloud/googledrive/googledrivelistdirectorybyidrequest.o \
 	cloud/googledrive/googledrivestorage.o \
@@ -142,7 +143,6 @@ MODULE_OBJS += \
 	events/sdl/sdl-events.o \
 	graphics/sdl/sdl-graphics.o \
 	graphics/surfacesdl/surfacesdl-graphics.o \
-	graphics3d/sdl/sdl-graphics3d.o \
 	graphics3d/openglsdl/openglsdl-graphics3d.o \
 	mixer/sdl/sdl-mixer.o \
 	mutex/sdl/sdl-mutex.o \
@@ -251,7 +251,8 @@ ifdef MORPHOS
 MODULE_OBJS += \
 	fs/morphos/morphos-fs.o \
 	fs/morphos/morphos-fs-factory.o \
-	dialogs/morphos/morphos-dialogs.o
+	dialogs/morphos/morphos-dialogs.o \
+	midi/camd.o
 endif
 
 ifdef RISCOS
@@ -283,22 +284,31 @@ endif
 
 ifeq ($(BACKEND),ds)
 MODULE_OBJS += \
-	fs/ds/ds-fs.o \
-	fs/ds/ds-fs-factory.o \
+	events/ds/ds-events.o \
+	fs/posix/posix-fs.o \
+	fs/posix/posix-fs-factory.o \
+	fs/posix/posix-iostream.o \
+	fs/posix-drives/posix-drives-fs.o \
+	fs/posix-drives/posix-drives-fs-factory.o \
+	fs/devoptab/devoptab-fs-factory.o \
+	mixer/maxmod/maxmod-mixer.o \
 	plugins/ds/ds-provider.o
 endif
 
 ifeq ($(BACKEND),dingux)
 MODULE_OBJS += \
-	events/dinguxsdl/dinguxsdl-events.o \
-	graphics/downscalesdl/downscalesdl-graphics.o
+	events/dinguxsdl/dinguxsdl-events.o
 endif
 
 ifeq ($(BACKEND),gph)
 MODULE_OBJS += \
 	events/gph/gph-events.o \
-	graphics/gph/gph-graphics.o \
-	graphics/downscalesdl/downscalesdl-graphics.o
+	graphics/gph/gph-graphics.o
+endif
+
+ifdef IPHONE
+MODULE_OBJS += \
+	mutex/pthread/pthread-mutex.o
 endif
 
 ifdef IPHONE
@@ -345,8 +355,7 @@ MODULE_OBJS += \
 	fs/posix/posix-iostream.o \
 	fs/posix-drives/posix-drives-fs.o \
 	fs/posix-drives/posix-drives-fs-factory.o \
-	events/psp2sdl/psp2sdl-events.o \
-	graphics/psp2sdl/psp2sdl-graphics.o
+	events/psp2sdl/psp2sdl-events.o
 endif
 
 ifeq ($(BACKEND),samsungtv)

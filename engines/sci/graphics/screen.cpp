@@ -54,10 +54,8 @@ GfxScreen::GfxScreen(ResourceManager *resMan) : _resMan(resMan) {
 	_curPaletteMapValue = 0;
 	_paletteModsEnabled = false;
 
-	// King's Quest 6 and Gabriel Knight 1 have hires content, gk1/cd was able
-	// to provide that under DOS as well, but as gk1/floppy does support
-	// upscaled hires scriptswise, but doesn't actually have the hires content
-	// we need to limit it to platform windows.
+	// King's Quest 6 has hires content in the Windows version which we also
+	// allow to be optionally enabled in the DOS version.
 	if ((g_sci->getPlatform() == Common::kPlatformWindows) || (g_sci->forceHiresGraphics())) {
 		if (g_sci->getGameId() == GID_KQ6)
 			_upscaledHires = GFX_SCREEN_UPSCALED_640x440;
@@ -128,15 +126,6 @@ GfxScreen::GfxScreen(ResourceManager *resMan) : _resMan(resMan) {
 		_displayHeight = 440;
 		for (int i = 0; i <= _scriptHeight; i++)
 			_upscaledHeightMapping[i] = (i * 11) / 5;
-		for (int i = 0; i <= _scriptWidth; i++)
-			_upscaledWidthMapping[i] = i * 2;
-		break;
-	case GFX_SCREEN_UPSCALED_640x480:
-		// Gabriel Knight 1 (VESA, Mac)
-		_displayWidth = 640;
-		_displayHeight = 480;
-		for (int i = 0; i <= _scriptHeight; i++)
-			_upscaledHeightMapping[i] = (i * 12) / 5;
 		for (int i = 0; i <= _scriptWidth; i++)
 			_upscaledWidthMapping[i] = i * 2;
 		break;
@@ -563,10 +552,10 @@ byte GfxScreen::vectorIsFillMatch(int16 x, int16 y, byte screenMask, byte checkF
  * with flood fill, due to small difference in the Bresenham logic.
  */
 void GfxScreen::drawLine(Common::Point startPoint, Common::Point endPoint, byte color, byte priority, byte control) {
-    int16 maxWidth = _width - 1;
-    int16 maxHeight = _height - 1;
-    // we need to clip values here, lsl3 room 620 background picture draws a line from 0, 199 t 320, 199
-    //  otherwise we would get heap corruption.
+	int16 maxWidth = _width - 1;
+	int16 maxHeight = _height - 1;
+	// we need to clip values here, lsl3 room 620 background picture draws a line from 0, 199 t 320, 199
+	//  otherwise we would get heap corruption.
 	int16 left = CLIP<int16>(startPoint.x, 0, maxWidth);
 	int16 top = CLIP<int16>(startPoint.y, 0, maxHeight);
 	int16 right = CLIP<int16>(endPoint.x, 0, maxWidth);
@@ -1010,9 +999,6 @@ void GfxScreen::adjustBackUpscaledCoordinates(int16 &y, int16 &x) {
 		x /= 2;
 		y = (y * 5) / 11;
 		break;
-	case GFX_SCREEN_UPSCALED_640x480:
-		x /= 2;
-		y = (y * 5) / 12;
 	default:
 		break;
 	}
